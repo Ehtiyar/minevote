@@ -35,28 +35,42 @@ export default function Dashboard() {
 
   const fetchProfile = async () => {
     try {
-      const { data, error } = await supabase
+      // 1) Temel profil bilgileri
+      const { data: base, error: pErr } = await supabase
         .from('profiles')
-        .select(`
-          id,
-          username,
-          mc_nick,
-          bio,
-          discord_id,
-          created_at,
-          total_votes:votes(count),
-          servers_owned:servers(count)
-        `)
+        .select('id, username, mc_nick, bio, discord_id, created_at')
         .eq('id', user?.id)
         .single()
 
-      if (error) {
-        console.error('Profile fetch error:', error)
+      if (pErr) {
+        console.error('Profile fetch error:', pErr)
         // Create profile if it doesn't exist
         await createProfile()
-      } else {
-        setProfile(data)
+        return
       }
+
+      // 2) Oy sayısı
+      const { count: votesCount } = await supabase
+        .from('votes')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user?.id)
+
+      // 3) Sahip olunan sunucu sayısı
+      const { count: serversCount } = await supabase
+        .from('servers')
+        .select('*', { count: 'exact', head: true })
+        .eq('owner_id', user?.id)
+
+      setProfile({
+        id: base!.id,
+        username: base!.username,
+        mc_nick: base!.mc_nick,
+        bio: base!.bio,
+        discord_id: base!.discord_id,
+        created_at: base!.created_at,
+        total_votes: votesCount ?? 0,
+        servers_owned: serversCount ?? 0,
+      })
     } catch (error) {
       console.error('Profile fetch error:', error)
     } finally {

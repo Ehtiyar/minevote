@@ -47,9 +47,12 @@ CREATE TABLE votes (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
   user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
   server_id UUID REFERENCES servers(id) ON DELETE CASCADE NOT NULL,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  UNIQUE(user_id, server_id, DATE(created_at)) -- One vote per user per server per day
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- Ensure only one vote per user per server per day
+CREATE UNIQUE INDEX idx_votes_user_server_day
+  ON votes (user_id, server_id, (created_at::date));
 
 -- Create badges table
 CREATE TABLE badges (
