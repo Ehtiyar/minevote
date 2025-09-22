@@ -1,10 +1,10 @@
 [build]
-  command = "npm run build:netlify"
+  command = "npm run build"
   publish = ".next"
 
 [build.environment]
   NODE_VERSION = "18.20.4"
-  NPM_FLAGS = "--production=false"
+  NPM_FLAGS = "--legacy-peer-deps"
 
 [functions]
   node_bundler = "esbuild"
@@ -13,19 +13,6 @@
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 
-[build.processing]
-  skip_processing = false
-
-[build.processing.css]
-  bundle = true
-  minify = true
-
-[build.processing.js]
-  bundle = true
-  minify = true
-
-[build.processing.html]
-  pretty_urls = true
 
 # Environment variables for Netlify
 # Add these in Netlify Dashboard > Site Settings > Environment Variables
