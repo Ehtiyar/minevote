@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "build:netlify": "npm ci && npm run build",
+    "postbuild": "next-sitemap"
   },
   "dependencies": {
     "@supabase/auth-helpers-nextjs": "^0.10.0",
@@ -34,6 +36,10 @@
     "eslint-config-next": "^14.2.5",
     "typescript": "^5.5.4",
     "@netlify/plugin-nextjs": "^5.8.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
   }
 }
 
