@@ -93,13 +93,9 @@ export function VoteModal({ server, isOpen, onClose, onVoteSuccess }: VoteModalP
             <p className="text-xs text-gray-500 mt-1">Ödüllerin gönderileceği oyun içi kullanıcı adınız</p>
           </div>
 
-          {/* Placeholder CAPTCHA */}
+          {/* Placeholder CAPTCHA -> basic style retained, no external script */}
           <div className="bg-gray-800 border border-white/10 rounded-md p-3 text-center">
-            <button
-              className="px-3 py-1 text-sm bg-blue-600 rounded"
-              onClick={() => setCaptchaToken('mock')}>
-              reCAPTCHA (mock)
-            </button>
+            <button className="px-3 py-1 text-sm bg-blue-600 rounded" onClick={() => setCaptchaToken('mock')}>reCAPTCHA (mock)</button>
           </div>
 
           {error && <div className="text-sm text-red-400">{error}</div>}
