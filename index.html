@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="tr" class="no-js">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>MineVote - Minecraft Sunucu Oylama</title>
+    <meta name="description" content="Türkiye'nin en büyük Minecraft sunucu voting platformu" />
+
+    <!-- Preload Fonts -->
+    <link rel="preload" href="assets/fonts/minecraft.woff2" as="font" type="font/woff2" crossorigin />
+
+    <!-- Favicons (placeholders) -->
+    <link rel="icon" href="assets/img/icon.png" />
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="assets/css/styles.css" />
+  </head>
+  <body>
+    <a class="sr-only" href="#main">İçeriğe atla</a>
+
+    <!-- Header -->
+    <header class="site-header glass-effect">
+      <div class="container header-inner">
+        <a class="brand" href="#" aria-label="MineVote Ana Sayfa">
+          <img src="assets/img/grass-block.png" class="brand-icon" alt="Grass" />
+          <span class="brand-text">MineVote</span>
+        </a>
+
+        <nav class="main-nav" aria-label="Ana Menü">
+          <button class="nav-toggle" aria-expanded="false" aria-controls="nav-menu" aria-label="Menüyü aç/kapat">
+            <span class="nav-toggle-bar"></span>
+            <span class="nav-toggle-bar"></span>
+            <span class="nav-toggle-bar"></span>
+          </button>
+          <ul id="nav-menu" class="nav-list">
+            <li><a class="nav-link active" href="#">🏠 Ana Sayfa</a></li>
+            <li><a class="nav-link" href="#servers">🎯 Sunucular</a></li>
+            <li><a class="nav-link" href="#popular">⭐ Popüler</a></li>
+            <li><a class="nav-link" href="#leaderboard">📊 Sıralamalar</a></li>
+            <li><a class="nav-link" href="#add">➕ Sunucu Ekle</a></li>
+            <li><a class="nav-link" href="#contact">📞 İletişim</a></li>
+          </ul>
+        </nav>
+
+        <div class="user-actions">
+          <button class="btn btn-ghost" id="btn-login">Giriş Yap</button>
+          <button class="btn btn-primary" id="btn-register">Kayıt Ol</button>
+          <div class="divider"></div>
+          <button class="btn btn-ghost" id="lang-toggle" aria-label="Dili değiştir">TR/EN</button>
+          <label class="theme-toggle" title="Tema">
+            <input type="checkbox" id="theme-switch" aria-label="Koyu/Açık mod">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+    </header>
+
+    <!-- Hero -->
+    <section class="hero particles" id="hero">
+      <div class="container hero-inner">
+        <h1 class="gradient-text">Minecraft'ın En İyi Sunucularına Oy Ver!</h1>
+        <p>Türkiye'nin en büyük Minecraft sunucu listesi. Favorilerini keşfet, oy ver ve ödüller kazan!</p>
+        <div class="hero-buttons">
+          <button class="btn btn-primary">Sunucuları Keşfet</button>
+          <button class="btn btn-secondary">Sunucu Ekle</button>
+        </div>
+      </div>
+      <div class="hero-floating" aria-hidden="true">
+        <div class="float block-1"></div>
+        <div class="float block-2"></div>
+        <div class="float block-3"></div>
+      </div>
+      <div class="parallax" aria-hidden="true"></div>
+    </section>
+
+    <!-- Stats -->
+    <section class="stats">
+      <div class="container stats-grid">
+        <div class="stat-card glass-effect">
+          <div class="stat-icon">🖥️</div>
+          <div class="stat-content">
+            <div class="stat-number" data-count-to="1247">0</div>
+            <div class="stat-label">Toplam Sunucu</div>
+          </div>
+        </div>
+        <div class="stat-card glass-effect">
+          <div class="stat-icon">👥</div>
+          <div class="stat-content">
+            <div class="stat-number" data-count-to="45892">0</div>
+            <div class="stat-label">Aktif Oyuncu</div>
+          </div>
+        </div>
+        <div class="stat-card glass-effect">
+          <div class="stat-icon">🗳️</div>
+          <div class="stat-content">
+            <div class="stat-number" data-count-to="892441">0</div>
+            <div class="stat-label">Toplam Oy</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Filters -->
+    <section class="filters">
+      <div class="container">
+        <div class="search-container glass-effect">
+          <input type="text" placeholder="Sunucu ara (isim, IP, kategori...)" aria-label="Sunucu ara" />
+          <button class="search-btn" aria-label="Ara">🔍</button>
+        </div>
+
+        <div class="chip-group" role="group" aria-label="Kategoriler">
+          <button class="chip active">🏠 Tümü</button>
+          <button class="chip">⚔️ PvP</button>
+          <button class="chip">🏗️ Survival</button>
+          <button class="chip">🌌 Skyblock</button>
+          <button class="chip">⛏️ Prison</button>
+          <button class="chip">🏛️ Faction</button>
+          <button class="chip">🎭 Roleplay</button>
+          <button class="chip">🎨 Creative</button>
+          <button class="chip">🎮 Minigames</button>
+          <button class="chip">🐉 Pixelmon</button>
+        </div>
+
+        <div class="sort-row">
+          <label for="sort" class="sr-only">Sırala</label>
+          <select id="sort" class="sort-dropdown">
+            <option>📈 En Çok Oy Alan</option>
+            <option>👥 En Kalabalık</option>
+            <option>🆕 En Yeni</option>
+            <option>📊 En Aktif</option>
+            <option>💎 Premium Önce</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <main id="main" class="container layout">
+      <!-- Main list -->
+      <section class="server-list" id="servers">
+        <div class="server-grid">
+          <!-- Example server card -->
+          <article class="server-card premium">
+            <div class="server-image">
+              <img src="assets/img/server-banner.jpg" alt="Sunucu Banner" loading="lazy" />
+              <div class="status-badge">🟢 Online</div>
+              <div class="rank-badge">#1</div>
+              <div class="premium-badge">⭐ Premium</div>
+            </div>
+            <div class="server-info">
+              <h3 class="server-name">AwesomeCraft Network</h3>
+              <p class="server-description">En eğlenceli survival deneyimi! Ekonomi, job sistemi, özel eventler...</p>
+              <div class="server-stats">
+                <span class="stat">👥 248/500</span>
+                <span class="stat">📊 1.19.4</span>
+                <span class="stat">🎯 847 oy</span>
+                <span class="stat">🌍 TR</span>
+              </div>
+              <div class="server-tags">
+                <span class="tag">Survival</span>
+                <span class="tag">Economy</span>
+                <span class="tag">PvP</span>
+              </div>
+            </div>
+            <div class="server-actions">
+              <button class="btn vote-btn" data-server="AwesomeCraft">🗳️ Oy Ver</button>
+              <button class="btn btn-ghost copy-ip-btn" data-ip="play.awesomecraft.net">📋 IP Kopyala</button>
+              <button class="btn btn-ghost details-btn">ℹ️ Detaylar</button>
+            </div>
+          </article>
+
+          <!-- More cards will be injected here dynamically in future -->
+        </div>
+      </section>
+
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <div class="sidebar-widget glass-effect">
+          <h3>🔥 En Popülerler</h3>
+          <div class="mini-server-list">
+            <div class="mini-server-item">
+              <img src="assets/img/small-logo.png" alt="Logo" />
+              <div class="mini-info">
+                <strong>Sunucu Adı</strong>
+                <span>847 oy</span>
+              </div>
+              <span class="rank">#1</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="sidebar-widget glass-effect">
+          <h3>✨ Yeni Sunucular</h3>
+          <div class="mini-server-list">
+            <div class="mini-server-item">
+              <img src="assets/img/small-logo.png" alt="Logo" />
+              <div class="mini-info">
+                <strong>YeniCraft</strong>
+                <span>1 gün önce</span>
+              </div>
+              <span class="rank">#—</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="ad-widget glass-effect">
+          <h4>Sponsorlu</h4>
+          <div class="ad-content skeleton" aria-label="Reklam alanı"></div>
+        </div>
+      </aside>
+    </main>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+      <div class="container footer-content">
+        <div class="footer-section">
+          <img src="assets/img/logo.png" alt="MineVote" class="footer-logo" />
+          <p>Türkiye'nin en büyük Minecraft sunucu voting platformu</p>
+          <div class="social-links">
+            <a href="#" class="social-btn">📘 Facebook</a>
+            <a href="#" class="social-btn">🐦 Twitter</a>
+            <a href="#" class="social-btn">💬 Discord</a>
+          </div>
+        </div>
+        <div class="footer-section">
+          <h4>Hızlı Erişim</h4>
+          <ul>
+            <li><a href="#">Sunucu Ekle</a></li>
+            <li><a href="#">API Dokümantasyon</a></li>
+            <li><a href="#">Yardım</a></li>
+            <li><a href="#">İletişim</a></li>
+          </ul>
+        </div>
+        <div class="footer-section">
+          <h4>📊 Canlı İstatistikler</h4>
+          <div class="live-stats">
+            <div class="stat-item">
+              <span class="stat-number">1,247</span>
+              <span class="stat-label">Sunucu</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-number">45,892</span>
+              <span class="stat-label">Oyuncu</span>
+            </div>
+          </div>
+        </div>
+        <div class="footer-section">
+          <h4>📧 Bülten</h4>
+          <p>Yeni sunucular ve güncellemeler hakkında haberdar ol</p>
+          <div class="newsletter-signup">
+            <input type="email" placeholder="E-posta adresin" />
+            <button class="btn btn-primary">Abone Ol</button>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>© 2024 MineVote. Tüm hakları saklıdır.</p>
+        <div class="legal-links">
+          <a href="#">Gizlilik Politikası</a>
+          <a href="#">Kullanım Şartları</a>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Modal: Vote -->
+    <div class="modal" id="vote-modal" aria-hidden="true" aria-labelledby="vote-title" role="dialog">
+      <div class="modal-backdrop" data-close></div>
+      <div class="modal-content glass-effect">
+        <button class="modal-close" aria-label="Kapat" data-close>✖</button>
+        <h2 id="vote-title">MineWorld'e Oy Ver</h2>
+        <div class="server-preview">
+          <img src="assets/img/server-banner.jpg" alt="Sunucu banner" />
+          <div class="server-quick-info">
+            <h3>MineWorld Network</h3>
+            <p>IP: play.mineworld.net</p>
+            <p>👥 156/300 oyuncu</p>
+          </div>
+        </div>
+        <div class="vote-steps">
+          <div class="step">
+            <span class="step-number">1</span>
+            <p>Kullanıcı adınızı girin</p>
+            <input type="text" placeholder="Minecraft kullanıcı adı" />
+          </div>
+          <div class="step">
+            <span class="step-number">2</span>
+            <p>Captcha'yı tamamlayın</p>
+            <div class="captcha-area skeleton"></div>
+          </div>
+          <div class="step">
+            <span class="step-number">3</span>
+            <button class="btn btn-success vote-submit-btn">✅ Oy Ver!</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toasts -->
+    <div class="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+    <!-- Scripts -->
+    <script src="assets/js/app.js" defer></script>
+  </body>
+  </html>
+
