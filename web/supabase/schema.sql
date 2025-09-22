@@ -62,15 +62,13 @@ create table if not exists public.votes (
   fraud_score integer default 0,
   validation_notes text,
   created_at timestamptz default now(),
-  processed_at timestamptz,
-  constraint votes_daily_limit unique (server_id, minecraft_username, date(created_at)),
-  constraint votes_ip_daily_limit unique (server_id, voter_ip_hash, date(created_at))
+  processed_at timestamptz
 );
 
 create index if not exists idx_votes_server_id on public.votes (server_id);
 create index if not exists idx_votes_username on public.votes (minecraft_username);
 create index if not exists idx_votes_created_at on public.votes (created_at desc);
-create index if not exists idx_votes_daily_stats on public.votes (server_id, date(created_at));
+create index if not exists idx_votes_daily_stats on public.votes (server_id, created_at);
 
 -- 3. Vote Statistics
 create table if not exists public.vote_statistics (
