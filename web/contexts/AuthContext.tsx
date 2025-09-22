@@ -39,21 +39,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Get initial session
     const getInitialSession = async () => {
-      const { session } = await auth.getSession()
-      setSession(session)
-      setUser(session?.user ?? null)
-      
-      if (session?.user) {
-        await loadProfile(session.user.id)
+      try {
+        const { session } = await auth.getSession()
+        setSession(session)
+        setUser(session?.user ?? null)
+        
+        if (session?.user) {
+          await loadProfile(session.user.id)
+        }
+      } catch (error) {
+        console.error('Session error:', error)
+      } finally {
+        setLoading(false)
       }
-      
-      setLoading(false)
     }
 
     getInitialSession()
 
     // Listen for auth changes
-    const { data: { subscription } } = auth.onAuthStateChange(
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         setSession(session)
         setUser(session?.user ?? null)
@@ -89,15 +93,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const createProfile = async (userId: string) => {
     try {
-      const { data: userData } = await auth.getCurrentUser()
-      if (!userData.user) return
+      const { user: currentUser } = await auth.getCurrentUser()
+      if (!currentUser) return
 
       const profileData = {
         id: userId,
-        username: userData.user.user_metadata?.username || userData.user.email?.split('@')[0] || 'User',
-        mc_nick: userData.user.user_metadata?.mc_nick || '',
+        username: currentUser.user_metadata?.username || currentUser.email?.split('@')[0] || 'User',
+        mc_nick: currentUser.user_metadata?.mc_nick || '',
         bio: '',
-        discord_id: userData.user.user_metadata?.discord_id || null,
+        discord_id: currentUser.user_metadata?.discord_id || null,
         total_votes: 0,
         xp: 0,
         level: 1
