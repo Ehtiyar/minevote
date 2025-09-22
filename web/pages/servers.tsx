@@ -1,7 +1,7 @@
 import Head from 'next/head'
 import { GetServerSideProps } from 'next'
-import { getSupabaseAdmin } from '@/lib/supabaseServer'
-import { ServerCard } from '@/components/ServerCard'
+import { getSupabaseAdmin } from '../lib/supabaseServer'
+import { ServerCard } from '../components/ServerCard'
 
 type Server = {
   id: string
