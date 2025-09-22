@@ -1,10 +1,12 @@
 import Head from 'next/head'
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
+import { useAuth } from '../contexts/AuthContext'
 
 export default function Home() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isDarkMode, setIsDarkMode] = useState(true)
+  const { user, signOut } = useAuth()
 
   useEffect(() => {
     // Counter animation
@@ -72,8 +74,22 @@ export default function Home() {
           </nav>
 
           <div className="user-actions">
-            <button className="btn btn-ghost" id="btn-login">Giriş Yap</button>
-            <button className="btn btn-primary" id="btn-register">Kayıt Ol</button>
+            {user ? (
+              <>
+                <Link href="/dashboard" className="btn btn-ghost">Dashboard</Link>
+                <button 
+                  onClick={() => signOut()} 
+                  className="btn btn-primary"
+                >
+                  Çıkış Yap
+                </button>
+              </>
+            ) : (
+              <>
+                <Link href="/auth/login" className="btn btn-ghost">Giriş Yap</Link>
+                <Link href="/auth/register" className="btn btn-primary">Kayıt Ol</Link>
+              </>
+            )}
             <div className="divider"></div>
             <button className="btn btn-ghost" id="lang-toggle" aria-label="Dili değiştir">TR/EN</button>
             <label className="theme-toggle" title="Tema">
