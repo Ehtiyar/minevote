@@ -1,115 +1,25 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
 import Link from 'next/link'
 import { useAuth } from '../../contexts/AuthContext'
-import { supabase } from '../../lib/supabase'
-
-interface UserProfile {
-  id: string
-  username: string
-  mc_nick: string
-  bio?: string
-  discord_id?: string
-  created_at: string
-  total_votes: number
-  servers_owned: number
-}
 
 export default function Dashboard() {
-  const { user, loading: authLoading, signOut } = useAuth()
-  const [profile, setProfile] = useState<UserProfile | null>(null)
-  const [loading, setLoading] = useState(true)
+  const { user, profile, loading: authLoading, signOut } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
     if (!authLoading && !user) {
       router.push('/auth/login')
-      return
-    }
-
-    if (user) {
-      fetchProfile()
     }
   }, [user, authLoading, router])
-
-  const fetchProfile = async () => {
-    try {
-      // 1) Temel profil bilgileri
-      const { data: base, error: pErr } = await supabase
-        .from('profiles')
-        .select('id, username, mc_nick, bio, discord_id, created_at')
-        .eq('id', user?.id)
-        .single()
-
-      if (pErr) {
-        console.error('Profile fetch error:', pErr)
-        // Create profile if it doesn't exist
-        await createProfile()
-        return
-      }
-
-      // 2) Oy sayısı
-      const { count: votesCount } = await supabase
-        .from('votes')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', user?.id)
-
-      // 3) Sahip olunan sunucu sayısı
-      const { count: serversCount } = await supabase
-        .from('servers')
-        .select('*', { count: 'exact', head: true })
-        .eq('owner_id', user?.id)
-
-      setProfile({
-        id: base!.id,
-        username: base!.username,
-        mc_nick: base!.mc_nick,
-        bio: base!.bio,
-        discord_id: base!.discord_id,
-        created_at: base!.created_at,
-        total_votes: votesCount ?? 0,
-        servers_owned: serversCount ?? 0,
-      })
-    } catch (error) {
-      console.error('Profile fetch error:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const createProfile = async () => {
-    if (!user) return
-
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .insert({
-          id: user.id,
-          username: user.user_metadata?.username || user.email?.split('@')[0],
-          mc_nick: user.user_metadata?.mc_nick || '',
-          bio: '',
-          discord_id: user.user_metadata?.discord_id || null,
-        })
-        .select()
-        .single()
-
-      if (error) {
-        console.error('Profile creation error:', error)
-      } else {
-        setProfile(data)
-      }
-    } catch (error) {
-      console.error('Profile creation error:', error)
-    }
-  }
 
   const handleSignOut = async () => {
     await signOut()
     router.push('/')
   }
 
-  if (authLoading || loading) {
+  if (authLoading) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <div className="text-center">
@@ -169,8 +79,8 @@ export default function Dashboard() {
                       className="w-full h-full object-cover"
                     />
                   </div>
-                  <h2 className="text-xl font-bold text-white">{profile?.username}</h2>
-                  <p className="text-gray-400">@{profile?.mc_nick}</p>
+                  <h2 className="text-xl font-bold text-white">{profile?.username || 'Kullanıcı'}</h2>
+                  <p className="text-gray-400">@{profile?.mc_nick || 'steve'}</p>
                   {profile?.discord_id && (
                     <p className="text-sm text-gray-500 mt-1">
                       Discord: {profile.discord_id}
@@ -184,8 +94,12 @@ export default function Dashboard() {
                     <span className="text-white font-semibold">{profile?.total_votes || 0}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-400">Sunucularım:</span>
-                    <span className="text-white font-semibold">{profile?.servers_owned || 0}</span>
+                    <span className="text-gray-400">XP:</span>
+                    <span className="text-white font-semibold">{profile?.xp || 0}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Seviye:</span>
+                    <span className="text-white font-semibold">{profile?.level || 1}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-400">Üyelik:</span>

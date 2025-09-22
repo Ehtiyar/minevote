@@ -5,16 +5,18 @@ import Head from 'next/head'
 import { useAuth } from '../../contexts/AuthContext'
 
 export default function Register() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
-  const [username, setUsername] = useState('')
-  const [mcNick, setMcNick] = useState('')
+  const [formData, setFormData] = useState({
+    username: '',
+    mcNick: '',
+    email: '',
+    password: '',
+    confirmPassword: ''
+  })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
   const router = useRouter()
-  const { signUp, signInWithDiscord, user } = useAuth()
+  const { user, signUp } = useAuth()
 
   useEffect(() => {
     if (user) {
@@ -22,25 +24,42 @@ export default function Register() {
     }
   }, [user, router])
 
-  const handleEmailRegister = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError('')
 
-    if (password !== confirmPassword) {
+    // Validation
+    if (formData.password !== formData.confirmPassword) {
       setError('Şifreler eşleşmiyor')
       setLoading(false)
       return
     }
 
-    if (password.length < 6) {
+    if (formData.password.length < 6) {
       setError('Şifre en az 6 karakter olmalı')
       setLoading(false)
       return
     }
 
+    if (!formData.username.trim()) {
+      setError('Kullanıcı adı gerekli')
+      setLoading(false)
+      return
+    }
+
+    if (!formData.mcNick.trim()) {
+      setError('Minecraft nicki gerekli')
+      setLoading(false)
+      return
+    }
+
     try {
-      const { error } = await signUp(email, password)
+      const { error } = await signUp(formData.email, formData.password, {
+        username: formData.username,
+        mc_nick: formData.mcNick
+      })
+
       if (error) {
         setError(error.message)
       } else {
@@ -62,7 +81,7 @@ export default function Register() {
     setError('')
 
     try {
-      const { error } = await signInWithDiscord()
+      const { error } = await signUp('', '', {}) // Discord OAuth will handle this
       if (error) {
         setError(error.message)
         setLoading(false)
@@ -122,42 +141,42 @@ export default function Register() {
               </div>
             )}
 
-            <form className="space-y-6" onSubmit={handleEmailRegister}>
+            <form className="space-y-6" onSubmit={handleSubmit}>
               <div>
-                <label htmlFor="username" className="block text-sm font-medium text-gray-300">
-                  Kullanıcı Adı
+                <label htmlFor="username" className="block text-sm font-medium text-gray-300 mb-2">
+                  Kullanıcı Adı *
                 </label>
                 <input
                   id="username"
                   name="username"
                   type="text"
                   required
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-600 placeholder-gray-400 text-white bg-gray-800 rounded-lg focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 focus:z-10 sm:text-sm"
+                  value={formData.username}
+                  onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-600 rounded-lg bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                   placeholder="Kullanıcı adınızı girin"
                 />
               </div>
 
               <div>
-                <label htmlFor="mcNick" className="block text-sm font-medium text-gray-300">
-                  Minecraft Nicki
+                <label htmlFor="mcNick" className="block text-sm font-medium text-gray-300 mb-2">
+                  Minecraft Nicki *
                 </label>
                 <input
                   id="mcNick"
                   name="mcNick"
                   type="text"
                   required
-                  value={mcNick}
-                  onChange={(e) => setMcNick(e.target.value)}
-                  className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-600 placeholder-gray-400 text-white bg-gray-800 rounded-lg focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 focus:z-10 sm:text-sm"
+                  value={formData.mcNick}
+                  onChange={(e) => setFormData({ ...formData, mcNick: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-600 rounded-lg bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                   placeholder="Minecraft oyuncu adınızı girin"
                 />
               </div>
 
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-300">
-                  E-posta adresi
+                <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
+                  E-posta adresi *
                 </label>
                 <input
                   id="email"
@@ -165,16 +184,16 @@ export default function Register() {
                   type="email"
                   autoComplete="email"
                   required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-600 placeholder-gray-400 text-white bg-gray-800 rounded-lg focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 focus:z-10 sm:text-sm"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-600 rounded-lg bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                   placeholder="E-posta adresinizi girin"
                 />
               </div>
 
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-300">
-                  Şifre
+                <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">
+                  Şifre *
                 </label>
                 <input
                   id="password"
@@ -182,16 +201,16 @@ export default function Register() {
                   type="password"
                   autoComplete="new-password"
                   required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-600 placeholder-gray-400 text-white bg-gray-800 rounded-lg focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 focus:z-10 sm:text-sm"
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-600 rounded-lg bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                   placeholder="Şifrenizi girin (en az 6 karakter)"
                 />
               </div>
 
               <div>
-                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-300">
-                  Şifre Tekrar
+                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-300 mb-2">
+                  Şifre Tekrar *
                 </label>
                 <input
                   id="confirmPassword"
@@ -199,9 +218,9 @@ export default function Register() {
                   type="password"
                   autoComplete="new-password"
                   required
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-600 placeholder-gray-400 text-white bg-gray-800 rounded-lg focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 focus:z-10 sm:text-sm"
+                  value={formData.confirmPassword}
+                  onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-600 rounded-lg bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                   placeholder="Şifrenizi tekrar girin"
                 />
               </div>
@@ -210,7 +229,7 @@ export default function Register() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loading ? 'Kayıt oluşturuluyor...' : 'Kayıt Ol'}
                 </button>
