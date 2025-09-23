@@ -1,10 +1,9 @@
 import type { AppProps } from 'next/app'
-import { ReactNode } from 'react'
 import '../styles/globals.css'
 import Head from 'next/head'
 import { AuthProvider } from '../contexts/AuthContext'
 
-export default function App({ Component, pageProps }: AppProps) {
+export default function MyApp({ Component, pageProps }: AppProps) {
   return (
     <AuthProvider>
       <Head></Head>
@@ -12,5 +11,3 @@ export default function App({ Component, pageProps }: AppProps) {
     </AuthProvider>
   )
 }
-
-
