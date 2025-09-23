@@ -102,6 +102,11 @@ export function VoteModal({ server, isOpen, onClose, onVoteSuccess }: VoteModalP
               theme="dark"
               size="normal"
             />
+            {!process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY && (
+              <div className="mt-2">
+                <p className="text-yellow-400 text-xs">Test reCAPTCHA kullanılıyor</p>
+              </div>
+            )}
           </div>
 
           {error && <div className="text-sm text-red-400">{error}</div>}
