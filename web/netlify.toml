@@ -1,16 +1,11 @@
 [build]
-  command = "npm run build:netlify"
+  command = "npm ci --legacy-peer-deps && npm run build"
   publish = ".next"
   base = "web"
 
 [build.environment]
   NODE_VERSION = "18.20.4"
   NPM_FLAGS = "--legacy-peer-deps"
-
-# Supabase environment variables (Netlify'da Site Settings > Environment Variables'dan ayarlanacak)
-# NEXT_PUBLIC_SUPABASE_URL = "your-supabase-url"
-# NEXT_PUBLIC_SUPABASE_ANON_KEY = "your-supabase-anon-key"
-# SUPABASE_SERVICE_KEY = "your-supabase-service-key"
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
