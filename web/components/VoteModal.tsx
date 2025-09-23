@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import ReCAPTCHA from 'react-google-recaptcha'
 
 interface Server {
   id: string
@@ -93,9 +94,14 @@ export function VoteModal({ server, isOpen, onClose, onVoteSuccess }: VoteModalP
             <p className="text-xs text-gray-500 mt-1">Ödüllerin gönderileceği oyun içi kullanıcı adınız</p>
           </div>
 
-          {/* Placeholder CAPTCHA -> basic style retained, no external script */}
+          {/* reCAPTCHA */}
           <div className="bg-gray-800 border border-white/10 rounded-md p-3 text-center">
-            <button className="px-3 py-1 text-sm bg-blue-600 rounded" onClick={() => setCaptchaToken('mock')}>reCAPTCHA (mock)</button>
+            <ReCAPTCHA
+              sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI'}
+              onChange={(token) => setCaptchaToken(token)}
+              theme="dark"
+              size="normal"
+            />
           </div>
 
           {error && <div className="text-sm text-red-400">{error}</div>}
