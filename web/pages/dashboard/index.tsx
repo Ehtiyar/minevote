@@ -47,7 +47,7 @@ export default function Dashboard() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center py-4">
               <Link href="/" className="flex items-center space-x-2 text-emerald-400 text-xl font-bold">
-                <img src="/assets/img/grass-block.png" className="w-8 h-8" alt="MineVote" />
+                <span className="w-8 h-8 flex items-center justify-center">🟩</span>
                 <span>MineVote</span>
               </Link>
               

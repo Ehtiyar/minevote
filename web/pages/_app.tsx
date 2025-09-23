@@ -6,9 +6,7 @@ import { AuthProvider } from '../contexts/AuthContext'
 export default function App({ Component, pageProps }: AppProps) {
   return (
     <AuthProvider>
-      <Head>
-        <link rel="preload" href="/assets/fonts/minecraft.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
-      </Head>
+      <Head></Head>
       <Component {...pageProps} />
     </AuthProvider>
   )

@@ -48,7 +48,6 @@ export default function Home({ popular, latest }: { popular: MiniServer[]; lates
       <Head>
         <title>MineVote - Minecraft Sunucu Oylama</title>
         <meta name="description" content="Türkiye'nin en büyük Minecraft sunucu voting platformu" />
-        <link rel="preload" href="/assets/fonts/minecraft.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
         <link rel="icon" href="/assets/img/icon.png" />
       </Head>
 
@@ -58,7 +57,7 @@ export default function Home({ popular, latest }: { popular: MiniServer[]; lates
       <header className="site-header glass-effect">
         <div className="container header-inner">
           <Link href="/" className="brand" aria-label="MineVote Ana Sayfa">
-            <img src="/assets/img/grass-block.png" className="brand-icon" alt="Grass" />
+            <span className="brand-icon" aria-hidden="true">🟩</span>
             <span className="brand-text">MineVote</span>
           </Link>
 
@@ -200,7 +199,7 @@ export default function Home({ popular, latest }: { popular: MiniServer[]; lates
             {/* Example server card */}
             <article className="server-card premium">
               <div className="server-image">
-                <img src="/assets/img/server-banner.jpg" alt="Sunucu Banner" loading="lazy" />
+                <img src="https://via.placeholder.co/640x128?text=Server+Banner" alt="Sunucu Banner" loading="lazy" />
                 <div className="status-badge">🟢 Online</div>
                 <div className="rank-badge">#1</div>
                 <div className="premium-badge">⭐ Premium</div>
@@ -241,7 +240,7 @@ export default function Home({ popular, latest }: { popular: MiniServer[]; lates
               )}
               {popular.map((s, idx) => (
                 <div key={s.id} className="mini-server-item">
-                  <img src={s.banner_url || '/assets/img/small-logo.png'} alt="Logo" />
+                  <img src={s.banner_url || 'https://via.placeholder.co/32?text=L'} alt="Logo" />
                   <div className="mini-info">
                     <strong>{s.name}</strong>
                     <span>{s.total_votes.toLocaleString('tr-TR')} oy</span>
@@ -262,7 +261,7 @@ export default function Home({ popular, latest }: { popular: MiniServer[]; lates
               )}
               {latest.map((s) => (
                 <div key={s.id} className="mini-server-item">
-                  <img src={s.banner_url || '/assets/img/small-logo.png'} alt="Logo" />
+                  <img src={s.banner_url || 'https://via.placeholder.co/32?text=L'} alt="Logo" />
                   <div className="mini-info">
                     <strong>{s.name}</strong>
                     <span>yeni eklendi</span>
@@ -284,7 +283,7 @@ export default function Home({ popular, latest }: { popular: MiniServer[]; lates
       <footer className="site-footer">
         <div className="container footer-content">
           <div className="footer-section">
-            <img src="/assets/img/logo.png" alt="MineVote" className="footer-logo" />
+            <span className="footer-logo">MineVote</span>
             <p>Türkiye'nin en büyük Minecraft sunucu voting platformu</p>
             <div className="social-links">
               <a href="#" className="social-btn">📘 Facebook</a>
