@@ -1,0 +1,17 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://minevote.netlify.app/sitemap.xml
+
+# Disallow admin areas
+Disallow: /dashboard/
+Disallow: /api/
+Disallow: /_next/
+Disallow: /admin/
+
+# Allow important pages
+Allow: /
+Allow: /servers
+Allow: /auth/login
+Allow: /auth/register

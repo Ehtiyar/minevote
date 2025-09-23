@@ -1,82 +1,101 @@
-import type { NextApiRequest, NextApiResponse } from 'next'
-import { createClient } from '@supabase/supabase-js'
+import { NextApiRequest, NextApiResponse } from 'next'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_KEY!
-)
-
-interface RateLimit { requests: number; windowMs: number; message: string }
-const rateLimits: Record<string, RateLimit> = {
-  vote: { requests: 1, windowMs: 24 * 60 * 60 * 1000, message: 'Only 1 vote per day allowed' },
-  api: { requests: 100, windowMs: 60 * 1000, message: 'Too many requests' },
-  search: { requests: 30, windowMs: 60 * 1000, message: 'Search rate limit exceeded' }
+interface RateLimitConfig {
+  windowMs: number
+  max: number
+  message: string
+  skipSuccessfulRequests?: boolean
+  skipFailedRequests?: boolean
 }
 
-export function rateLimit(type: keyof typeof rateLimits) {
-  return async (req: NextApiRequest, res: NextApiResponse, next: () => void) => {
-    const limit = rateLimits[type]
-    const clientIP = (req.headers['x-forwarded-for'] as string) || req.socket.remoteAddress || 'unknown'
-    const key = `ratelimit:${type}:${clientIP}`
+interface RateLimitStore {
+  [key: string]: {
+    count: number
+    resetTime: number
+  }
+}
+
+const store: RateLimitStore = {}
+
+export function rateLimit(config: RateLimitConfig) {
+  return (req: NextApiRequest, res: NextApiResponse, next?: () => void) => {
+    const key = getKey(req)
     const now = Date.now()
+    const windowMs = config.windowMs
+    const max = config.max
 
-    try {
-      // Supabase'de rate limiting için basit bir tablo kullanabilirsiniz
-      const { data, error } = await supabase
-        .from('rate_limits')
-        .select('*')
-        .eq('key', key)
-        .single()
-
-      if (error && error.code !== 'PGRST116') {
-        console.error('Rate limit check error:', error)
-        next() // allow on error
-        return
+    // Clean up expired entries
+    Object.keys(store).forEach(k => {
+      if (store[k].resetTime < now) {
+        delete store[k]
       }
+    })
 
-      if (!data) {
-        // İlk istek
-        await supabase
-          .from('rate_limits')
-          .insert({
-            key,
-            count: 1,
-            expires_at: new Date(now + limit.windowMs).toISOString()
-          })
-        next()
-        return
+    // Get or create entry
+    if (!store[key]) {
+      store[key] = {
+        count: 0,
+        resetTime: now + windowMs
       }
+    }
 
-      if (new Date(data.expires_at) < new Date()) {
-        // Süre dolmuş, sıfırla
-        await supabase
-          .from('rate_limits')
-          .update({
-            count: 1,
-            expires_at: new Date(now + limit.windowMs).toISOString()
-          })
-          .eq('key', key)
-        next()
-        return
-      }
+    const entry = store[key]
 
-      if (data.count >= limit.requests) {
-        const retryAfter = Math.ceil((new Date(data.expires_at).getTime() - now) / 1000)
-        return res.status(429).json({ error: limit.message, retryAfter })
-      }
+    // Check if window has expired
+    if (now > entry.resetTime) {
+      entry.count = 0
+      entry.resetTime = now + windowMs
+    }
 
-      // Sayacı artır
-      await supabase
-        .from('rate_limits')
-        .update({ count: data.count + 1 })
-        .eq('key', key)
+    // Increment counter
+    entry.count++
 
+    // Check if limit exceeded
+    if (entry.count > max) {
+      res.setHeader('Retry-After', Math.ceil((entry.resetTime - now) / 1000))
+      res.setHeader('X-RateLimit-Limit', max.toString())
+      res.setHeader('X-RateLimit-Remaining', '0')
+      res.setHeader('X-RateLimit-Reset', entry.resetTime.toString())
+      
+      return res.status(429).json({
+        error: config.message,
+        retryAfter: Math.ceil((entry.resetTime - now) / 1000)
+      })
+    }
+
+    // Set rate limit headers
+    res.setHeader('X-RateLimit-Limit', max.toString())
+    res.setHeader('X-RateLimit-Remaining', (max - entry.count).toString())
+    res.setHeader('X-RateLimit-Reset', entry.resetTime.toString())
+
+    if (next) {
       next()
-    } catch (error) {
-      console.error('Rate limiting error:', error)
-      next() // allow on error
     }
   }
 }
 
+function getKey(req: NextApiRequest): string {
+  // Use IP address as key
+  const forwarded = req.headers['x-forwarded-for']
+  const ip = Array.isArray(forwarded) ? forwarded[0] : forwarded || req.socket.remoteAddress || 'unknown'
+  return `rate_limit:${ip}`
+}
 
+// Predefined rate limiters
+export const voteRateLimit = rateLimit({
+  windowMs: 24 * 60 * 60 * 1000, // 24 hours
+  max: 1, // 1 vote per day per IP
+  message: 'Günde sadece bir kez oy verebilirsiniz'
+})
+
+export const apiRateLimit = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // 100 requests per 15 minutes
+  message: 'Çok fazla istek gönderdiniz. Lütfen bekleyin.'
+})
+
+export const authRateLimit = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // 5 auth attempts per 15 minutes
+  message: 'Çok fazla giriş denemesi. Lütfen bekleyin.'
+})

@@ -3,6 +3,7 @@ import { useRouter } from 'next/router'
 import Link from 'next/link'
 import Head from 'next/head'
 import { useAuth } from '../../contexts/AuthContext'
+import ReCAPTCHA from 'react-google-recaptcha'
 
 export default function Register() {
   const [formData, setFormData] = useState({
@@ -10,11 +11,14 @@ export default function Register() {
     mcNick: '',
     email: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    acceptTOS: false
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
+  const [passwordStrength, setPasswordStrength] = useState(0)
   const router = useRouter()
   const { user, signUp } = useAuth()
 
@@ -24,20 +28,53 @@ export default function Register() {
     }
   }, [user, router])
 
+  // Password strength calculation
+  useEffect(() => {
+    const calculatePasswordStrength = (password: string) => {
+      let strength = 0
+      if (password.length >= 8) strength += 1
+      if (password.length >= 12) strength += 1
+      if (/[a-z]/.test(password)) strength += 1
+      if (/[A-Z]/.test(password)) strength += 1
+      if (/[0-9]/.test(password)) strength += 1
+      if (/[^A-Za-z0-9]/.test(password)) strength += 1
+      return strength
+    }
+    setPasswordStrength(calculatePasswordStrength(formData.password))
+  }, [formData.password])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError('')
 
     // Validation
+    if (!formData.acceptTOS) {
+      setError('Kullanım şartlarını kabul etmelisiniz')
+      setLoading(false)
+      return
+    }
+
+    if (!captchaToken) {
+      setError('reCAPTCHA doğrulaması gerekli')
+      setLoading(false)
+      return
+    }
+
     if (formData.password !== formData.confirmPassword) {
       setError('Şifreler eşleşmiyor')
       setLoading(false)
       return
     }
 
-    if (formData.password.length < 6) {
-      setError('Şifre en az 6 karakter olmalı')
+    if (formData.password.length < 8) {
+      setError('Şifre en az 8 karakter olmalı')
+      setLoading(false)
+      return
+    }
+
+    if (passwordStrength < 3) {
+      setError('Şifre çok zayıf. Büyük harf, küçük harf ve rakam içermeli')
       setLoading(false)
       return
     }
@@ -50,6 +87,14 @@ export default function Register() {
 
     if (!formData.mcNick.trim()) {
       setError('Minecraft nicki gerekli')
+      setLoading(false)
+      return
+    }
+
+    // Minecraft username validation
+    const mcNickRegex = /^[a-zA-Z0-9_]{3,16}$/
+    if (!mcNickRegex.test(formData.mcNick)) {
+      setError('Minecraft nicki 3-16 karakter arası olmalı ve sadece harf, rakam, _ içermeli')
       setLoading(false)
       return
     }
@@ -204,8 +249,30 @@ export default function Register() {
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-600 rounded-lg bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                  placeholder="Şifrenizi girin (en az 6 karakter)"
+                  placeholder="Şifrenizi girin (en az 8 karakter)"
                 />
+                {formData.password && (
+                  <div className="mt-2">
+                    <div className="flex items-center space-x-2">
+                      <div className="flex-1 bg-gray-600 rounded-full h-2">
+                        <div 
+                          className={`h-2 rounded-full transition-all duration-300 ${
+                            passwordStrength < 2 ? 'bg-red-500' : 
+                            passwordStrength < 4 ? 'bg-yellow-500' : 'bg-green-500'
+                          }`}
+                          style={{ width: `${(passwordStrength / 6) * 100}%` }}
+                        />
+                      </div>
+                      <span className="text-xs text-gray-400">
+                        {passwordStrength < 2 ? 'Zayıf' : 
+                         passwordStrength < 4 ? 'Orta' : 'Güçlü'}
+                      </span>
+                    </div>
+                    <div className="text-xs text-gray-400 mt-1">
+                      Büyük harf, küçük harf, rakam ve özel karakter kullanın
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div>
@@ -226,9 +293,41 @@ export default function Register() {
               </div>
 
               <div>
+                <div className="flex items-start space-x-2">
+                  <input
+                    id="acceptTOS"
+                    type="checkbox"
+                    checked={formData.acceptTOS}
+                    onChange={(e) => setFormData({ ...formData, acceptTOS: e.target.checked })}
+                    className="mt-1 h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-600 rounded bg-gray-700"
+                    required
+                  />
+                  <label htmlFor="acceptTOS" className="text-sm text-gray-300">
+                    <Link href="/terms" className="text-emerald-400 hover:text-emerald-300">
+                      Kullanım Şartları
+                    </Link>
+                    {' ve '}
+                    <Link href="/privacy" className="text-emerald-400 hover:text-emerald-300">
+                      Gizlilik Politikası
+                    </Link>
+                    'nı okudum ve kabul ediyorum *
+                  </label>
+                </div>
+              </div>
+
+              <div>
+                <ReCAPTCHA
+                  sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI'}
+                  onChange={(token) => setCaptchaToken(token)}
+                  theme="dark"
+                  size="normal"
+                />
+              </div>
+
+              <div>
                 <button
                   type="submit"
-                  disabled={loading}
+                  disabled={loading || !formData.acceptTOS || !captchaToken}
                   className="w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loading ? 'Kayıt oluşturuluyor...' : 'Kayıt Ol'}

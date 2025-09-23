@@ -14,12 +14,38 @@ type MiniServer = {
   created_at?: string
 }
 
-export default function Home({ popular, latest }: { popular: MiniServer[]; latest: MiniServer[] }) {
+interface Stats {
+  totalServers: number
+  totalPlayers: number
+  totalVotes: number
+  onlineServers: number
+}
+
+export default function Home({ popular, latest, stats }: { popular: MiniServer[]; latest: MiniServer[]; stats: Stats }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isDarkMode, setIsDarkMode] = useState(true)
+  const [clientStats, setClientStats] = useState<Stats | null>(null)
+  const [statsLoading, setStatsLoading] = useState(true)
   const { user, signOut } = useAuth()
 
   useEffect(() => {
+    // Fetch client-side stats for real-time updates
+    const fetchStats = async () => {
+      try {
+        const response = await fetch('/api/stats')
+        if (response.ok) {
+          const data = await response.json()
+          setClientStats(data)
+        }
+      } catch (error) {
+        console.error('Failed to fetch stats:', error)
+      } finally {
+        setStatsLoading(false)
+      }
+    }
+
+    fetchStats()
+    
     // Counter animation
     const animateCounters = () => {
       const counters = document.querySelectorAll('.stat-number')
@@ -46,12 +72,57 @@ export default function Home({ popular, latest }: { popular: MiniServer[]; lates
   return (
     <>
       <Head>
-        <title>MineVote - Minecraft Sunucu Oylama</title>
-        <meta name="description" content="Türkiye'nin en büyük Minecraft sunucu voting platformu" />
+        <title>MineVote - Minecraft Sunucu Oylama Platformu</title>
+        <meta name="description" content="Türkiye'nin en büyük Minecraft sunucu voting platformu. Favori sunucularınızı keşfedin, oy verin ve ödüller kazanın!" />
+        <meta name="keywords" content="minecraft, sunucu, oylama, vote, türkiye, server, minevote" />
+        <meta name="author" content="MineVote" />
+        <meta name="robots" content="index, follow" />
+        <link rel="canonical" href="https://minevote.netlify.app" />
+        
+        {/* Open Graph */}
+        <meta property="og:title" content="MineVote - Minecraft Sunucu Oylama" />
+        <meta property="og:description" content="Türkiye'nin en büyük Minecraft sunucu voting platformu" />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://minevote.netlify.app" />
+        <meta property="og:image" content="https://minevote.netlify.app/assets/img/og-image.png" />
+        <meta property="og:site_name" content="MineVote" />
+        <meta property="og:locale" content="tr_TR" />
+        
+        {/* Twitter Card */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="MineVote - Minecraft Sunucu Oylama" />
+        <meta name="twitter:description" content="Türkiye'nin en büyük Minecraft sunucu voting platformu" />
+        <meta name="twitter:image" content="https://minevote.netlify.app/assets/img/og-image.png" />
+        
+        {/* Additional SEO */}
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="theme-color" content="#10B981" />
         <link rel="icon" href="/assets/img/icon.png" />
+        <link rel="apple-touch-icon" href="/assets/img/apple-touch-icon.png" />
+        
+        {/* Structured Data */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              "name": "MineVote",
+              "url": "https://minevote.netlify.app",
+              "description": "Türkiye'nin en büyük Minecraft sunucu voting platformu",
+              "potentialAction": {
+                "@type": "SearchAction",
+                "target": "https://minevote.netlify.app/servers?search={search_term_string}",
+                "query-input": "required name=search_term_string"
+              }
+            })
+          }}
+        />
       </Head>
 
-      <a className="sr-only" href="#main">İçeriğe atla</a>
+      <a className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-emerald-600 text-white px-4 py-2 rounded-md z-50" href="#main">
+        İçeriğe atla
+      </a>
 
       {/* Header */}
       <header className="site-header glass-effect">
@@ -141,21 +212,27 @@ export default function Home({ popular, latest }: { popular: MiniServer[]; lates
           <div className="stat-card glass-effect">
             <div className="stat-icon">🖥️</div>
             <div className="stat-content">
-              <div className="stat-number" data-count-to="1247">0</div>
+              <div className="stat-number" data-count-to={clientStats?.totalServers || stats?.totalServers || 0}>
+                {statsLoading ? '—' : (clientStats?.totalServers || stats?.totalServers || 0).toLocaleString('tr-TR')}
+              </div>
               <div className="stat-label">Toplam Sunucu</div>
             </div>
           </div>
           <div className="stat-card glass-effect">
             <div className="stat-icon">👥</div>
             <div className="stat-content">
-              <div className="stat-number" data-count-to="45892">0</div>
+              <div className="stat-number" data-count-to={clientStats?.totalPlayers || stats?.totalPlayers || 0}>
+                {statsLoading ? '—' : (clientStats?.totalPlayers || stats?.totalPlayers || 0).toLocaleString('tr-TR')}
+              </div>
               <div className="stat-label">Aktif Oyuncu</div>
             </div>
           </div>
           <div className="stat-card glass-effect">
             <div className="stat-icon">🗳️</div>
             <div className="stat-content">
-              <div className="stat-number" data-count-to="892441">0</div>
+              <div className="stat-number" data-count-to={clientStats?.totalVotes || stats?.totalVotes || 0}>
+                {statsLoading ? '—' : (clientStats?.totalVotes || stats?.totalVotes || 0).toLocaleString('tr-TR')}
+              </div>
               <div className="stat-label">Toplam Oy</div>
             </div>
           </div>
@@ -166,8 +243,30 @@ export default function Home({ popular, latest }: { popular: MiniServer[]; lates
       <section className="filters">
         <div className="container">
           <div className="search-container glass-effect">
-            <input type="text" placeholder="Sunucu ara (isim, IP, kategori...)" aria-label="Sunucu ara" />
-            <button className="search-btn" aria-label="Ara">🔍</button>
+            <label htmlFor="server-search" className="sr-only">Sunucu ara</label>
+            <input 
+              id="server-search"
+              type="text" 
+              placeholder="Sunucu ara (isim, IP, kategori...)" 
+              aria-label="Sunucu ara"
+              aria-describedby="search-help"
+            />
+            <button 
+              className="search-btn" 
+              aria-label="Ara"
+              type="button"
+              onClick={() => {
+                const searchInput = document.getElementById('server-search') as HTMLInputElement
+                if (searchInput?.value) {
+                  window.location.href = `/servers?search=${encodeURIComponent(searchInput.value)}`
+                }
+              }}
+            >
+              🔍
+            </button>
+            <div id="search-help" className="sr-only">
+              Sunucu adı, IP adresi veya kategori yazarak arama yapabilirsiniz
+            </div>
           </div>
 
           <div className="chip-group" role="group" aria-label="Kategoriler">
@@ -181,12 +280,22 @@ export default function Home({ popular, latest }: { popular: MiniServer[]; lates
 
           <div className="sort-row">
             <label htmlFor="sort" className="sr-only">Sırala</label>
-            <select id="sort" className="sort-dropdown">
-              <option>📈 En Çok Oy Alan</option>
-              <option>👥 En Kalabalık</option>
-              <option>🆕 En Yeni</option>
-              <option>📊 En Aktif</option>
-              <option>💎 Premium Önce</option>
+            <select 
+              id="sort" 
+              className="sort-dropdown"
+              aria-label="Sunucuları sırala"
+              onChange={(e) => {
+                const value = e.target.value
+                if (value) {
+                  window.location.href = `/servers?sort=${value.toLowerCase().replace(/\s+/g, '_')}`
+                }
+              }}
+            >
+              <option value="votes">📈 En Çok Oy Alan</option>
+              <option value="players">👥 En Kalabalık</option>
+              <option value="newest">🆕 En Yeni</option>
+              <option value="active">📊 En Aktif</option>
+              <option value="premium">💎 Premium Önce</option>
             </select>
           </div>
         </div>
@@ -196,35 +305,36 @@ export default function Home({ popular, latest }: { popular: MiniServer[]; lates
         {/* Main list */}
         <section className="server-list" id="servers">
           <div className="server-grid">
-            {/* Example server card */}
-            <article className="server-card premium">
-              <div className="server-image">
-                <img src="https://via.placeholder.co/640x128?text=Server+Banner" alt="Sunucu Banner" loading="lazy" />
-                <div className="status-badge">🟢 Online</div>
-                <div className="rank-badge">#1</div>
-                <div className="premium-badge">⭐ Premium</div>
-              </div>
-              <div className="server-info">
-                <h3 className="server-name">AwesomeCraft Network</h3>
-                <p className="server-description">En eğlenceli survival deneyimi! Ekonomi, job sistemi, özel eventler...</p>
-                <div className="server-stats">
-                  <span className="stat">👥 248/500</span>
-                  <span className="stat">📊 1.19.4</span>
-                  <span className="stat">🎯 847 oy</span>
-                  <span className="stat">🌍 TR</span>
+            {popular.length === 0 && latest.length === 0 ? (
+              <div className="col-span-full text-center py-12">
+                <div className="text-gray-400 text-lg mb-4">
+                  <span className="text-4xl mb-4 block">🎮</span>
+                  Henüz sunucu eklenmedi
                 </div>
-                <div className="server-tags">
-                  <span className="tag">Survival</span>
-                  <span className="tag">Economy</span>
-                  <span className="tag">PvP</span>
+                <p className="text-gray-500 mb-6">
+                  İlk sunucuyu eklemek için giriş yapın
+                </p>
+                <Link 
+                  href="/auth/login" 
+                  className="inline-flex items-center px-6 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
+                >
+                  Giriş Yap
+                </Link>
+              </div>
+            ) : (
+              <div className="col-span-full text-center py-8">
+                <div className="text-gray-400 text-lg mb-4">
+                  <span className="text-4xl mb-4 block">🔍</span>
+                  Sunucuları keşfetmek için
                 </div>
+                <Link 
+                  href="/servers" 
+                  className="inline-flex items-center px-6 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
+                >
+                  Tüm Sunucuları Gör
+                </Link>
               </div>
-              <div className="server-actions">
-                <button className="btn vote-btn" data-server="AwesomeCraft">🗳️ Oy Ver</button>
-                <button className="btn btn-ghost copy-ip-btn" data-ip="play.awesomecraft.net">📋 IP Kopyala</button>
-                <button className="btn btn-ghost details-btn">ℹ️ Detaylar</button>
-              </div>
-            </article>
+            )}
           </div>
         </section>
 
@@ -304,11 +414,15 @@ export default function Home({ popular, latest }: { popular: MiniServer[]; lates
             <h4>📊 Canlı İstatistikler</h4>
             <div className="live-stats">
               <div className="stat-item">
-                <span className="stat-number">1,247</span>
+                <span className="stat-number">
+                  {statsLoading ? '—' : (clientStats?.totalServers || stats?.totalServers || 0).toLocaleString('tr-TR')}
+                </span>
                 <span className="stat-label">Sunucu</span>
               </div>
               <div className="stat-item">
-                <span className="stat-number">45,892</span>
+                <span className="stat-number">
+                  {statsLoading ? '—' : (clientStats?.totalPlayers || stats?.totalPlayers || 0).toLocaleString('tr-TR')}
+                </span>
                 <span className="stat-label">Oyuncu</span>
               </div>
             </div>
@@ -323,10 +437,11 @@ export default function Home({ popular, latest }: { popular: MiniServer[]; lates
           </div>
         </div>
         <div className="footer-bottom">
-          <p>© 2024 MineVote. Tüm hakları saklıdır.</p>
+          <p>© {new Date().getFullYear()} MineVote. Tüm hakları saklıdır.</p>
           <div className="legal-links">
-            <a href="#">Gizlilik Politikası</a>
-            <a href="#">Kullanım Şartları</a>
+            <a href="/privacy" className="hover:text-emerald-400 transition-colors">Gizlilik Politikası</a>
+            <span className="text-gray-500">·</span>
+            <a href="/terms" className="hover:text-emerald-400 transition-colors">Kullanım Şartları</a>
           </div>
         </div>
       </footer>
@@ -351,11 +466,42 @@ export const getServerSideProps: GetServerSideProps = async () => {
       .order('created_at', { ascending: false })
       .limit(5)
 
-    if (popErr || newErr) throw popErr || newErr
+    // Get stats
+    const { count: totalServers, error: serversError } = await supabase
+      .from('servers')
+      .select('*', { count: 'exact', head: true })
 
-    return { props: { popular: popular || [], latest: latest || [] } }
+    const { data: serversData, error: playersError } = await supabase
+      .from('servers')
+      .select('current_players')
+      .eq('status', 'online')
+
+    const { count: totalVotes, error: votesError } = await supabase
+      .from('votes')
+      .select('*', { count: 'exact', head: true })
+
+    if (popErr || newErr || serversError || playersError || votesError) {
+      throw popErr || newErr || serversError || playersError || votesError
+    }
+
+    const totalPlayers = serversData?.reduce((sum, server) => sum + (server.current_players || 0), 0) || 0
+
+    const stats: Stats = {
+      totalServers: totalServers || 0,
+      totalPlayers: totalPlayers,
+      totalVotes: totalVotes || 0,
+      onlineServers: 0 // Will be calculated client-side
+    }
+
+    return { props: { popular: popular || [], latest: latest || [], stats } }
   } catch {
-    return { props: { popular: [], latest: [] } }
+    return { 
+      props: { 
+        popular: [], 
+        latest: [], 
+        stats: { totalServers: 0, totalPlayers: 0, totalVotes: 0, onlineServers: 0 }
+      } 
+    }
   }
 }
 

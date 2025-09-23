@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { createClient } from '@supabase/supabase-js'
 import crypto from 'crypto'
+import { voteRateLimit } from '../../../middleware/rateLimiting'
 
 interface VoteSubmissionRequest {
   serverId: string
@@ -13,6 +14,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
+  // Apply rate limiting
+  return new Promise((resolve) => {
+    voteRateLimit(req, res, async () => {
+      try {
+        await handleVote(req, res)
+        resolve(undefined)
+      } catch (error) {
+        console.error('Vote handler error:', error)
+        res.status(500).json({ error: 'Internal server error' })
+        resolve(undefined)
+      }
+    })
+  })
+}
+
+async function handleVote(req: NextApiRequest, res: NextApiResponse) {
   try {
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -67,19 +84,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       })
     }
 
-    if (captchaToken) {
-      // Test reCAPTCHA için özel kontrol
-      if (captchaToken === 'mock' || captchaToken === 'test' || captchaToken.includes('test')) {
-        // Test mode - her zaman geçerli
-        console.log('Test reCAPTCHA token accepted:', captchaToken)
-      } else {
-        const captchaValid = await verifyCaptcha(captchaToken, clientIP.toString())
-        if (!captchaValid) {
-          console.log('reCAPTCHA verification failed for token:', captchaToken.substring(0, 10) + '...')
-          return res.status(400).json({ error: 'Invalid CAPTCHA' })
-        }
-        console.log('reCAPTCHA verification successful')
+    // reCAPTCHA is required for all votes
+    if (!captchaToken) {
+      return res.status(400).json({ error: 'reCAPTCHA token is required' })
+    }
+
+    // Test reCAPTCHA için özel kontrol (sadece development)
+    if (process.env.NODE_ENV === 'development' && (captchaToken === 'mock' || captchaToken === 'test' || captchaToken.includes('test'))) {
+      console.log('Development reCAPTCHA token accepted:', captchaToken)
+    } else {
+      const captchaValid = await verifyCaptcha(captchaToken, clientIP.toString())
+      if (!captchaValid) {
+        console.log('reCAPTCHA verification failed for token:', captchaToken.substring(0, 10) + '...')
+        return res.status(400).json({ error: 'Invalid CAPTCHA. Please try again.' })
       }
+      console.log('reCAPTCHA verification successful')
     }
 
     const { data: vote, error: voteError } = await supabase
@@ -94,8 +113,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .single()
 
     if (voteError) {
+      console.error('Vote recording error:', voteError)
       return res.status(500).json({ error: 'Failed to record vote' })
     }
+
+    // Log successful vote
+    console.log(`Vote recorded: Server ${serverId}, User ${minecraftUsername}, IP ${ipHash.substring(0, 8)}...`)
 
     const votifierResult = await sendToVotifier(server, minecraftUsername, clientIP.toString())
 
