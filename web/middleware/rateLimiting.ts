@@ -1,7 +1,10 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import Redis from 'ioredis'
+import { createClient } from '@supabase/supabase-js'
 
-const redis = new Redis(process.env.REDIS_URL || '')
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_KEY!
+)
 
 interface RateLimit { requests: number; windowMs: number; message: string }
 const rateLimits: Record<string, RateLimit> = {
@@ -15,17 +18,63 @@ export function rateLimit(type: keyof typeof rateLimits) {
     const limit = rateLimits[type]
     const clientIP = (req.headers['x-forwarded-for'] as string) || req.socket.remoteAddress || 'unknown'
     const key = `ratelimit:${type}:${clientIP}`
+    const now = Date.now()
 
     try {
-      const current = await redis.incr(key)
-      if (current === 1) await redis.expire(key, Math.ceil(limit.windowMs / 1000))
-      if (current > limit.requests) {
-        const ttl = await redis.ttl(key)
-        return res.status(429).json({ error: limit.message, retryAfter: ttl })
+      // Supabase'de rate limiting için basit bir tablo kullanabilirsiniz
+      const { data, error } = await supabase
+        .from('rate_limits')
+        .select('*')
+        .eq('key', key)
+        .single()
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Rate limit check error:', error)
+        next() // allow on error
+        return
       }
+
+      if (!data) {
+        // İlk istek
+        await supabase
+          .from('rate_limits')
+          .insert({
+            key,
+            count: 1,
+            expires_at: new Date(now + limit.windowMs).toISOString()
+          })
+        next()
+        return
+      }
+
+      if (new Date(data.expires_at) < new Date()) {
+        // Süre dolmuş, sıfırla
+        await supabase
+          .from('rate_limits')
+          .update({
+            count: 1,
+            expires_at: new Date(now + limit.windowMs).toISOString()
+          })
+          .eq('key', key)
+        next()
+        return
+      }
+
+      if (data.count >= limit.requests) {
+        const retryAfter = Math.ceil((new Date(data.expires_at).getTime() - now) / 1000)
+        return res.status(429).json({ error: limit.message, retryAfter })
+      }
+
+      // Sayacı artır
+      await supabase
+        .from('rate_limits')
+        .update({ count: data.count + 1 })
+        .eq('key', key)
+
       next()
     } catch (error) {
-      next() // allow on redis failure
+      console.error('Rate limiting error:', error)
+      next() // allow on error
     }
   }
 }

@@ -1,102 +1,212 @@
 # MineVote Web
 
-Minecraft server voting platform built with Next.js and Supabase.
+Minecraft sunucu voting platformu - Next.js ve Supabase ile geliştirilmiştir.
 
-## Features
+## 🚀 Özellikler
 
-- User authentication (email/password + Discord OAuth)
-- Server voting system
-- User profiles with Minecraft integration
-- Server management for owners
-- Responsive design with Tailwind CSS
+- ✅ **Supabase Tabanlı Rate Limiting** - Redis bağımlılığı olmadan
+- ✅ **Next.js 14** - Modern React framework
+- ✅ **TypeScript** - Type safety
+- ✅ **Tailwind CSS** - Utility-first CSS framework
+- ✅ **Responsive Tasarım** - Mobile-first approach
+- ✅ **Dark/Light Mode** - Tema değiştirme
+- ✅ **Multi-language Support** - TR/EN dil desteği
+- ✅ **Glass Effect UI** - Modern cam efekti tasarım
+- ✅ **Particle Effects** - Arka plan animasyonları
+- ✅ **Accessibility** - ARIA etiketleri ve semantic HTML
 
-## Tech Stack
+## 📋 Gereksinimler
 
-- **Frontend**: Next.js 14, React 18, TypeScript
-- **Styling**: Tailwind CSS
-- **Backend**: Supabase (Auth + Database)
-- **Deployment**: Netlify
+- Node.js 18.0.0 veya üzeri
+- npm veya yarn
+- Supabase hesabı
 
-## Getting Started
+## 🛠️ Kurulum
 
-### Prerequisites
+1. **Repository'yi klonlayın:**
+```bash
+git clone <repository-url>
+cd minevote/web
+```
 
-- Node.js 18+
-- npm 8+
-- Supabase account
+2. **Bağımlılıkları yükleyin:**
+```bash
+npm install
+```
 
-### Installation
+3. **Environment variables'ları ayarlayın:**
+```bash
+cp env.example .env.local
+```
 
-1. Clone the repository
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
+4. **`.env.local` dosyasını düzenleyin:**
+```env
+NEXT_PUBLIC_SUPABASE_URL=your-supabase-project-url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+SUPABASE_SERVICE_KEY=your-supabase-service-key
+```
 
-3. Set up environment variables:
-   ```bash
-   cp env.example .env.local
-   ```
-   
-   Fill in your Supabase credentials:
-   ```
-   NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-   ```
+5. **Supabase'de rate_limits tablosunu oluşturun:**
+   - Supabase Dashboard'a gidin
+   - SQL Editor'ı açın
+   - `supabase/rate_limits.sql` dosyasındaki SQL'i çalıştırın
 
-4. Run the development server:
-   ```bash
-   npm run dev
-   ```
+## 🚀 Geliştirme
 
-5. Open [http://localhost:3000](http://localhost:3000) in your browser.
+```bash
+npm run dev
+```
 
-## Database Setup
+Uygulama [http://localhost:3000](http://localhost:3000) adresinde çalışacak.
 
-Run the SQL migrations in your Supabase project:
+## 🏗️ Build
 
-1. Go to Supabase Dashboard > SQL Editor
-2. Run the migration files in order:
-   - `supabase/migrations/001_initial_schema.sql`
-   - `supabase/migrations/002_fix_votes_table.sql`
-   - `supabase/migrations/003_complete_setup.sql`
-   - `supabase/migrations/004_safe_migration.sql`
+```bash
+npm run build
+```
 
-## Deployment
+## 🌐 Netlify Deploy
 
-### Netlify
+```bash
+npm run build:netlify
+```
 
-1. Connect your GitHub repository to Netlify
-2. Set environment variables in Netlify dashboard
-3. Deploy automatically on push
+### Netlify Environment Variables
 
-### Environment Variables
-
-Make sure to set these in your deployment platform:
+Netlify'da aşağıdaki environment variables'ları ayarlayın:
 
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_KEY`
 
-## Project Structure
+## 📊 Supabase Veritabanı
 
+### Rate Limits Tablosu
+
+```sql
+CREATE TABLE rate_limits (
+  id SERIAL PRIMARY KEY,
+  key TEXT UNIQUE NOT NULL,
+  count INTEGER DEFAULT 1,
+  expires_at TIMESTAMPTZ NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
 ```
-web/
-├── components/          # React components
-├── contexts/           # React contexts (Auth)
-├── lib/               # Utility functions
-├── pages/             # Next.js pages
-├── styles/            # CSS files
-├── supabase/          # Database migrations
-└── public/            # Static assets
+
+### RLS Politikaları
+
+- Service role: Tam erişim
+- Anon kullanıcılar: Sadece okuma
+
+## 🎨 Tasarım Sistemi
+
+### Renkler
+- Primary: Minecraft yeşil tonları
+- Secondary: Cam efekti (glass effect)
+- Accent: Gradient renkler
+
+### Tipografi
+- Minecraft font (custom)
+- System fallback fonts
+
+### Bileşenler
+- Glass effect cards
+- Gradient text
+- Particle backgrounds
+- Floating elements
+
+## 🔧 API Endpoints
+
+### Rate Limiting
+- `POST /api/vote` - Oy verme (1 gün/gün)
+- `GET /api/servers` - Sunucu listesi (100/dakika)
+- `GET /api/search` - Arama (30/dakika)
+
+## 📱 Responsive Breakpoints
+
+- Mobile: 320px - 768px
+- Tablet: 768px - 1024px
+- Desktop: 1024px+
+
+## 🌍 Çoklu Dil Desteği
+
+- Türkçe (varsayılan)
+- İngilizce
+- Dil değiştirme toggle'ı
+
+## 🎮 Minecraft Entegrasyonu
+
+- Server status kontrolü
+- Version bilgileri
+- Player count tracking
+- IP kopyalama
+
+## 🔒 Güvenlik
+
+- Rate limiting
+- Input validation
+- CSRF protection
+- XSS prevention
+- SQL injection koruması
+
+## 📈 Performans
+
+- Font preloading
+- Lazy loading
+- Image optimization
+- Code splitting
+- Caching strategies
+
+## 🧪 Test
+
+```bash
+npm run test
 ```
 
-## Contributing
+## 📦 Build Analizi
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Submit a pull request
+```bash
+npm run analyze
+```
 
-## License
+## 🚀 Deployment
 
-MIT License
+### Netlify
+1. Repository'yi Netlify'a bağlayın
+2. Build command: `npm run build:netlify`
+3. Publish directory: `.next`
+4. Environment variables'ları ayarlayın
+
+### Vercel
+1. Repository'yi Vercel'e bağlayın
+2. Framework: Next.js
+3. Environment variables'ları ayarlayın
+
+## 🤝 Katkıda Bulunma
+
+1. Fork yapın
+2. Feature branch oluşturun (`git checkout -b feature/amazing-feature`)
+3. Commit yapın (`git commit -m 'Add amazing feature'`)
+4. Push yapın (`git push origin feature/amazing-feature`)
+5. Pull Request oluşturun
+
+## 📄 Lisans
+
+Bu proje MIT lisansı altında lisanslanmıştır.
+
+## 📞 İletişim
+
+- Website: [MineVote](https://minevote.com)
+- Discord: [MineVote Discord](https://discord.gg/minevote)
+- Email: info@minevote.com
+
+## 🙏 Teşekkürler
+
+- [Next.js](https://nextjs.org/) - React framework
+- [Supabase](https://supabase.com/) - Backend as a Service
+- [Tailwind CSS](https://tailwindcss.com/) - CSS framework
+- [Minecraft](https://minecraft.net/) - Oyun
+
+---
+
+**Not:** Bu proje eğitim amaçlı geliştirilmiştir. Production kullanımı için ek güvenlik önlemleri alınması önerilir.
