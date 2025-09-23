@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { CATEGORY_OPTIONS } from '../lib/categories'
 
 interface FilterOptions {
   category: string
@@ -15,20 +16,7 @@ interface FilterSidebarProps {
   initialFilters?: Partial<FilterOptions>
 }
 
-const categories = [
-  { value: 'all', label: '🏠 Tümü' },
-  { value: 'survival', label: '🏗️ Survival' },
-  { value: 'pvp', label: '⚔️ PvP' },
-  { value: 'skyblock', label: '🌌 Skyblock' },
-  { value: 'prison', label: '⛏️ Prison' },
-  { value: 'faction', label: '🏛️ Faction' },
-  { value: 'roleplay', label: '🎭 Roleplay' },
-  { value: 'creative', label: '🎨 Creative' },
-  { value: 'minigames', label: '🎮 Minigames' },
-  { value: 'pixelmon', label: '🐉 Pixelmon' },
-  { value: 'bedwars', label: '🛏️ BedWars' },
-  { value: 'skywars', label: '☁️ SkyWars' }
-]
+const categories = [{ value: 'all', label: '🏠 Tümü' }, ...CATEGORY_OPTIONS.map(c => ({ value: c.slug, label: `${c.emoji ? c.emoji + ' ' : ''}${c.label}` }))]
 
 const sortOptions = [
   { value: 'votes', label: '📈 En Çok Oy Alan' },

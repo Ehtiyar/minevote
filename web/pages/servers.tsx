@@ -1,6 +1,8 @@
 import Head from 'next/head'
 import { GetServerSideProps } from 'next'
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
+import { useRouter } from 'next/router'
+import { normalizeCategories } from '../lib/categories'
 import { getSupabaseAdmin } from '../lib/supabaseServer'
 import { ServerCard } from '../components/ServerCard'
 import { FilterSidebar } from '../components/FilterSidebar'
@@ -33,6 +35,7 @@ type FilterOptions = {
 }
 
 export default function ServersPage({ servers }: { servers: Server[] }) {
+  const router = useRouter()
   const [filters, setFilters] = useState<FilterOptions>({
     category: 'all',
     status: 'all',
@@ -43,6 +46,15 @@ export default function ServersPage({ servers }: { servers: Server[] }) {
     premiumOnly: false
   })
   const [showMobileFilters, setShowMobileFilters] = useState(false)
+
+  // Initialize category from query (?category=slug)
+  useEffect(() => {
+    const q = (router.query.category as string) || ''
+    if (q && q !== filters.category) {
+      setFilters((f) => ({ ...f, category: q }))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [router.query.category])
 
   const filteredServers = useMemo(() => {
     let filtered = [...servers]
@@ -61,7 +73,7 @@ export default function ServersPage({ servers }: { servers: Server[] }) {
     // Kategori filtresi
     if (filters.category !== 'all') {
       filtered = filtered.filter(server =>
-        server.categories.includes(filters.category)
+        normalizeCategories(server.categories).includes(filters.category)
       )
     }
 

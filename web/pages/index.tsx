@@ -1,6 +1,7 @@
 import Head from 'next/head'
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
+import { CATEGORY_OPTIONS } from '../lib/categories'
 import { useAuth } from '../contexts/AuthContext'
 
 export default function Home() {
@@ -160,16 +161,12 @@ export default function Home() {
           </div>
 
           <div className="chip-group" role="group" aria-label="Kategoriler">
-            <button className="chip active">🏠 Tümü</button>
-            <button className="chip">⚔️ PvP</button>
-            <button className="chip">🏗️ Survival</button>
-            <button className="chip">🌌 Skyblock</button>
-            <button className="chip">⛏️ Prison</button>
-            <button className="chip">🏛️ Faction</button>
-            <button className="chip">🎭 Roleplay</button>
-            <button className="chip">🎨 Creative</button>
-            <button className="chip">🎮 Minigames</button>
-            <button className="chip">🐉 Pixelmon</button>
+            <Link href="/servers" className="chip active">🏠 Tümü</Link>
+            {CATEGORY_OPTIONS.map((c) => (
+              <Link key={c.slug} href={`/servers?category=${c.slug}`} className="chip">
+                {c.emoji ? `${c.emoji} ` : ''}{c.label}
+              </Link>
+            ))}
           </div>
 
           <div className="sort-row">

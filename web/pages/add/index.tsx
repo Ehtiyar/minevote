@@ -4,6 +4,7 @@ import Head from 'next/head'
 import Link from 'next/link'
 import { useAuth } from '../../contexts/AuthContext'
 import { supabase } from '../../lib/supabase'
+import { CATEGORY_OPTIONS, normalizeCategories, getLabelBySlug, toSlug } from '../../lib/categories'
 
 interface ServerFormData {
   name: string
@@ -15,20 +16,7 @@ interface ServerFormData {
   categories: string[]
 }
 
-const CATEGORIES = [
-  'Survival',
-  'PvP',
-  'Skyblock',
-  'Prison',
-  'Faction',
-  'Roleplay',
-  'Creative',
-  'Minigames',
-  'Pixelmon',
-  'Economy',
-  'RPG',
-  'Anarchy'
-]
+const CATEGORIES = CATEGORY_OPTIONS
 
 export default function AddServer() {
   const { user, loading: authLoading } = useAuth()
@@ -74,7 +62,7 @@ export default function AddServer() {
           description: formData.description,
           website_url: formData.website_url || null,
           discord_url: formData.discord_url || null,
-          categories: formData.categories,
+          categories: normalizeCategories(formData.categories.map(toSlug)),
         })
         .select()
         .single()
@@ -247,14 +235,14 @@ export default function AddServer() {
                 </label>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
                   {CATEGORIES.map((category) => (
-                    <label key={category} className="flex items-center space-x-2 cursor-pointer">
+                    <label key={category.slug} className="flex items-center space-x-2 cursor-pointer">
                       <input
                         type="checkbox"
-                        checked={formData.categories.includes(category)}
-                        onChange={() => handleCategoryToggle(category)}
+                        checked={formData.categories.includes(getLabelBySlug(category.slug)) || formData.categories.includes(category.slug)}
+                        onChange={() => handleCategoryToggle(getLabelBySlug(category.slug))}
                         className="rounded border-gray-600 text-emerald-600 focus:ring-emerald-500"
                       />
-                      <span className="text-gray-300 text-sm">{category}</span>
+                      <span className="text-gray-300 text-sm">{category.emoji ? category.emoji + ' ' : ''}{category.label}</span>
                     </label>
                   ))}
                 </div>
