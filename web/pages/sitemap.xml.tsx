@@ -1,7 +1,7 @@
 import { GetServerSideProps } from 'next'
 import { getSupabaseAdmin } from '../lib/supabaseServer'
 
-function generateSiteMap(servers: any[]) {
+function generateSiteMap(servers: Array<{id: string, updated_at?: string, created_at?: string}>) {
   const baseUrl = 'https://minevote.netlify.app'
   
   return `<?xml version="1.0" encoding="UTF-8"?>
