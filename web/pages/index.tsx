@@ -1,10 +1,20 @@
 import Head from 'next/head'
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
+import { GetServerSideProps } from 'next'
 import { CATEGORY_OPTIONS } from '../lib/categories'
 import { useAuth } from '../contexts/AuthContext'
+import { getSupabaseAdmin } from '../lib/supabaseServer'
 
-export default function Home() {
+type MiniServer = {
+  id: string
+  name: string
+  total_votes: number
+  banner_url?: string
+  created_at?: string
+}
+
+export default function Home({ popular, latest }: { popular: MiniServer[]; latest: MiniServer[] }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isDarkMode, setIsDarkMode] = useState(true)
   const { user, signOut } = useAuth()
@@ -67,10 +77,11 @@ export default function Home() {
             <ul id="nav-menu" className={`nav-list ${isMenuOpen ? 'open' : ''}`}>
               <li><Link href="/" className="nav-link active">🏠 Ana Sayfa</Link></li>
               <li><Link href="/servers" className="nav-link">🎯 Sunucular</Link></li>
-              <li><Link href="/popular" className="nav-link">⭐ Popüler</Link></li>
-              <li><Link href="/leaderboard" className="nav-link">📊 Sıralamalar</Link></li>
-              <li><Link href="/add" className="nav-link">➕ Sunucu Ekle</Link></li>
-              <li><Link href="/contact" className="nav-link">📞 İletişim</Link></li>
+              {/* Gelecek sayfalar hazır olana kadar mevcut rotalara yönlendir */}
+              <li><Link href="/servers?sort=votes" className="nav-link">⭐ Popüler</Link></li>
+              <li><Link href="/servers" className="nav-link">📊 Sıralamalar</Link></li>
+              {user && (<li><Link href="/add" className="nav-link">➕ Sunucu Ekle</Link></li>)}
+              <li><Link href="/auth/login" className="nav-link">📞 İletişim</Link></li>
             </ul>
           </nav>
 
@@ -114,7 +125,7 @@ export default function Home() {
           <p>Türkiye'nin en büyük Minecraft sunucu listesi. Favorilerini keşfet, oy ver ve ödüller kazan!</p>
           <div className="hero-buttons">
             <Link href="/servers" className="btn btn-primary">Sunucuları Keşfet</Link>
-            <Link href="/add" className="btn btn-secondary">Sunucu Ekle</Link>
+            {user && (<Link href="/add" className="btn btn-secondary">Sunucu Ekle</Link>)}
           </div>
         </div>
         <div className="hero-floating" aria-hidden="true">
@@ -223,28 +234,42 @@ export default function Home() {
           <div className="sidebar-widget glass-effect">
             <h3>🔥 En Popülerler</h3>
             <div className="mini-server-list">
-              <div className="mini-server-item">
-                <img src="/assets/img/small-logo.png" alt="Logo" />
-                <div className="mini-info">
-                  <strong>Sunucu Adı</strong>
-                  <span>847 oy</span>
+              {popular.length === 0 && (
+                <div className="mini-server-item">
+                  <div className="mini-info"><span>Henüz veri yok</span></div>
                 </div>
-                <span className="rank">#1</span>
-              </div>
+              )}
+              {popular.map((s, idx) => (
+                <div key={s.id} className="mini-server-item">
+                  <img src={s.banner_url || '/assets/img/small-logo.png'} alt="Logo" />
+                  <div className="mini-info">
+                    <strong>{s.name}</strong>
+                    <span>{s.total_votes.toLocaleString('tr-TR')} oy</span>
+                  </div>
+                  <span className="rank">#{idx + 1}</span>
+                </div>
+              ))}
             </div>
           </div>
 
           <div className="sidebar-widget glass-effect">
             <h3>✨ Yeni Sunucular</h3>
             <div className="mini-server-list">
-              <div className="mini-server-item">
-                <img src="/assets/img/small-logo.png" alt="Logo" />
-                <div className="mini-info">
-                  <strong>YeniCraft</strong>
-                  <span>1 gün önce</span>
+              {latest.length === 0 && (
+                <div className="mini-server-item">
+                  <div className="mini-info"><span>Henüz veri yok</span></div>
                 </div>
-                <span className="rank">#—</span>
-              </div>
+              )}
+              {latest.map((s) => (
+                <div key={s.id} className="mini-server-item">
+                  <img src={s.banner_url || '/assets/img/small-logo.png'} alt="Logo" />
+                  <div className="mini-info">
+                    <strong>{s.name}</strong>
+                    <span>yeni eklendi</span>
+                  </div>
+                  <span className="rank">#—</span>
+                </div>
+              ))}
             </div>
           </div>
 
@@ -308,6 +333,31 @@ export default function Home() {
       </footer>
     </>
   )
+}
+
+
+export const getServerSideProps: GetServerSideProps = async () => {
+  try {
+    const supabase = getSupabaseAdmin()
+
+    const { data: popular, error: popErr } = await supabase
+      .from('servers')
+      .select('id,name,total_votes,banner_url,created_at')
+      .order('total_votes', { ascending: false })
+      .limit(5)
+
+    const { data: latest, error: newErr } = await supabase
+      .from('servers')
+      .select('id,name,total_votes,banner_url,created_at')
+      .order('created_at', { ascending: false })
+      .limit(5)
+
+    if (popErr || newErr) throw popErr || newErr
+
+    return { props: { popular: popular || [], latest: latest || [] } }
+  } catch {
+    return { props: { popular: [], latest: [] } }
+  }
 }
 
 
