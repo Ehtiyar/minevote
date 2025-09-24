@@ -61,7 +61,8 @@ export default function AdminLogin() {
     setError('');
 
     try {
-      const response = await fetch('/api/admin/setup', {
+      // First try the simple setup API
+      const response = await fetch('/api/admin/setup-simple', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -77,7 +78,7 @@ export default function AdminLogin() {
 
       if (response.ok) {
         setError('');
-        alert('Admin user created successfully! You can now log in.');
+        alert(`Simple setup successful!\n\n${data.message}\n\nReceived data:\n- Username: ${data.receivedData.username}\n- Email: ${data.receivedData.email}\n- Password length: ${data.receivedData.passwordLength}`);
         setSetupMode(false);
       } else {
         setError(data.error || 'Setup failed');
@@ -184,6 +185,25 @@ export default function AdminLogin() {
                 type="button"
                 onClick={async () => {
                   try {
+                    const response = await fetch('/api/admin/check-db');
+                    const data = await response.json();
+                    const tableInfo = Object.entries(data.tables).map(([table, info]: [string, any]) => 
+                      `${table}: ${info.exists ? '✓' : '✗'} ${info.error ? `(${info.error})` : ''}`
+                    ).join('\n');
+                    alert(`Database Check:\n\nTables:\n${tableInfo}\n\nEnvironment:\n- Supabase URL: ${data.environment.hasSupabaseUrl ? '✓' : '✗'}\n- Service Key: ${data.environment.hasSupabaseServiceKey ? '✓' : '✗'}\n- JWT Secret: ${data.environment.hasJwtSecret ? '✓' : '✗'}`);
+                  } catch (error) {
+                    alert(`Database Check Failed: ${error}`);
+                  }
+                }}
+                disabled={isLoading}
+                className="w-full px-3 py-2 bg-orange-600 hover:bg-orange-700 text-white text-sm rounded-md transition-colors disabled:opacity-50"
+              >
+                Check Database Tables
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  try {
                     const response = await fetch('/api/test');
                     const data = await response.json();
                     alert(`Basic API Test: ${data.message}`);
@@ -195,6 +215,26 @@ export default function AdminLogin() {
                 className="w-full px-3 py-2 bg-green-600 hover:bg-green-700 text-white text-sm rounded-md transition-colors disabled:opacity-50"
               >
                 Test Basic API
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  try {
+                    const response = await fetch('/api/admin/setup-simple', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ username: 'test', password: 'test123' })
+                    });
+                    const data = await response.json();
+                    alert(`Simple Setup API Test: ${data.message}`);
+                  } catch (error) {
+                    alert(`Simple Setup API Test Failed: ${error}`);
+                  }
+                }}
+                disabled={isLoading}
+                className="w-full px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded-md transition-colors disabled:opacity-50"
+              >
+                Test Simple Setup API
               </button>
             </div>
           </div>
