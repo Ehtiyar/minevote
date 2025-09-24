@@ -18,8 +18,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       await AdminAuth.logAdminAction(
         adminId,
         'logout',
-        null,
-        null,
+        undefined,
+        undefined,
         { ip },
         ip,
         req.headers['user-agent']

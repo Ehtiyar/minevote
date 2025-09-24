@@ -83,7 +83,7 @@ export class AdminAuth {
         .eq('id', admins.id);
 
       // Log successful login
-      await this.logAdminAction(admins.id, 'login', null, null, { ip }, ip, 'admin-login');
+      await this.logAdminAction(admins.id, 'login', undefined, undefined, { ip }, ip, 'admin-login');
 
       return {
         admin: {
@@ -215,8 +215,8 @@ export class AdminAuth {
     await this.logAdminAction(
       adminId,
       'login_failed',
-      null,
-      null,
+      undefined,
+      undefined,
       { failed_count: newFailedCount, ip },
       ip,
       'admin-login'

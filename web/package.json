@@ -42,7 +42,9 @@
     "postcss": "^8.4.38",
     "vitest": "^1.0.4",
     "@vitejs/plugin-react": "^4.2.0",
-    "jsdom": "^23.0.1"
+    "jsdom": "^23.0.1",
+    "@testing-library/react": "^14.1.2",
+    "@testing-library/jest-dom": "^6.1.5"
   },
   "engines": {
     "node": "20.11.0",

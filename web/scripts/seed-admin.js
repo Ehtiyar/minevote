@@ -76,7 +76,7 @@ async function seedAdmin() {
         resource_type: 'admin',
         resource_id: data[0].id,
         details: { username, email },
-        ip: null,
+        ip: undefined,
         user_agent: 'seed-script'
       }]);
 
