@@ -9,7 +9,7 @@ const supabase = createClient(
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   // Verify admin session
-  const admin = await AdminAuth.getAdminFromRequest(req);
+  const admin = await AdminAuth.getAdminFromApiRequest(req);
   if (!admin) {
     return res.status(401).json({ error: 'Unauthorized' });
   }

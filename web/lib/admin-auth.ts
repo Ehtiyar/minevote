@@ -138,6 +138,13 @@ export class AdminAuth {
     return this.verifyToken(token);
   }
 
+  static async getAdminFromApiRequest(req: any): Promise<AdminUser | null> {
+    const token = req.cookies?.admin_session;
+    if (!token) return null;
+
+    return this.verifyToken(token);
+  }
+
   static async logAdminAction(
     adminId: string,
     action: string,

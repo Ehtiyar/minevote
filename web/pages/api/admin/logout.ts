@@ -8,7 +8,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     // Verify admin session
-    const admin = await AdminAuth.getAdminFromRequest(req);
+    const admin = await AdminAuth.getAdminFromApiRequest(req);
     const ip = req.headers['x-forwarded-for'] as string || 
                req.headers['x-real-ip'] as string || 
                req.connection.remoteAddress || 

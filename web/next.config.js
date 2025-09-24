@@ -6,12 +6,6 @@ const nextConfig = {
   compiler: {
     styledComponents: true
   },
-  // Disable edge runtime for middleware to prevent bcrypt issues
-  middleware: {
-    config: {
-      matcher: ['/admin/:path*', '/api/admin/:path*']
-    }
-  },
   webpack: (config, { isServer, isEdge }) => {
     // Handle native modules for server-side rendering
     if (isServer && !isEdge) {
