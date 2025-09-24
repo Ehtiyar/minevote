@@ -13,6 +13,10 @@
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 
+# Edge Functions configuration
+[functions]
+  external_node_modules = ["bcrypt", "canvas", "sqlite3", "minecraft-server-util", "discord.js", "styled-components", "cookie"]
+
 # Redirects for SPA routing
 [[redirects]]
   from = "/api/*"

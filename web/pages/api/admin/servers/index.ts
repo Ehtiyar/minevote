@@ -8,8 +8,9 @@ const supabase = createClient(
 );
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const adminId = req.headers['x-admin-id'] as string;
-  if (!adminId) {
+  // Verify admin session
+  const admin = await AdminAuth.getAdminFromRequest(req);
+  if (!admin) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
@@ -87,7 +88,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       // Log the action
       await AdminAuth.logAdminAction(
-        adminId,
+        admin.id,
         'server_created',
         'server',
         server.id,

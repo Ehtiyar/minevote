@@ -6,13 +6,28 @@ const nextConfig = {
   compiler: {
     styledComponents: true
   },
-  webpack: (config, { isServer }) => {
-    if (isServer) {
+  // Disable edge runtime for middleware to prevent bcrypt issues
+  middleware: {
+    config: {
+      matcher: ['/admin/:path*', '/api/admin/:path*']
+    }
+  },
+  webpack: (config, { isServer, isEdge }) => {
+    // Handle native modules for server-side rendering
+    if (isServer && !isEdge) {
       config.externals.push('bcrypt', 'canvas', 'sqlite3', 'minecraft-server-util', 'discord.js', 'styled-components', 'cookie');
     }
+    
+    // For edge runtime, completely exclude native modules
+    if (isEdge) {
+      config.externals = config.externals || [];
+      config.externals.push('bcrypt', 'canvas', 'sqlite3', 'minecraft-server-util', 'discord.js', 'styled-components', 'cookie');
+    }
+    
     // Handle optional dependencies gracefully
     config.resolve.fallback = {
       ...config.resolve.fallback,
+      'bcrypt': false,
       'discord.js': false,
       'canvas': false,
       'sqlite3': false,

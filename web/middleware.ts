@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { AdminAuth } from './lib/admin-auth';
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -15,27 +14,18 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Check for admin session
-  const admin = await AdminAuth.getAdminFromRequest(request);
+  // Check for admin session cookie (simple check without bcrypt)
+  const adminSession = request.cookies.get('admin_session')?.value;
 
-  if (!admin) {
+  if (!adminSession) {
     // Redirect to login page
     const loginUrl = new URL('/admin/login', request.url);
     loginUrl.searchParams.set('redirect', pathname);
     return NextResponse.redirect(loginUrl);
   }
 
-  // Add admin info to request headers for API routes
-  const requestHeaders = new Headers(request.headers);
-  requestHeaders.set('x-admin-id', admin.id);
-  requestHeaders.set('x-admin-username', admin.username);
-  requestHeaders.set('x-admin-role', admin.role);
-
-  return NextResponse.next({
-    request: {
-      headers: requestHeaders,
-    },
-  });
+  // For now, just pass through - detailed verification will be done in API routes
+  return NextResponse.next();
 }
 
 export const config = {

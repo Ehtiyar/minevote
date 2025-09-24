@@ -7,16 +7,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const adminId = req.headers['x-admin-id'] as string;
+    // Verify admin session
+    const admin = await AdminAuth.getAdminFromRequest(req);
     const ip = req.headers['x-forwarded-for'] as string || 
                req.headers['x-real-ip'] as string || 
                req.connection.remoteAddress || 
                'unknown';
 
     // Log logout action
-    if (adminId) {
+    if (admin) {
       await AdminAuth.logAdminAction(
-        adminId,
+        admin.id,
         'logout',
         undefined,
         undefined,

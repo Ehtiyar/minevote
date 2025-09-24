@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
+import { AdminAuth } from '../../../../lib/admin-auth';
 
 const supabase = createClient(
   process.env.SUPABASE_URL!,
@@ -12,9 +13,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    // Get admin ID from headers (set by middleware)
-    const adminId = req.headers['x-admin-id'] as string;
-    if (!adminId) {
+    // Verify admin session
+    const admin = await AdminAuth.getAdminFromRequest(req);
+    if (!admin) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
