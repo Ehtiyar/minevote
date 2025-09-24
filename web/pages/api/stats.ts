@@ -14,6 +14,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
+    // Check if environment variables are available
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_KEY) {
+      console.error('Missing Supabase environment variables')
+      return res.status(500).json({ error: 'Server configuration error' })
+    }
+
     const supabase = getSupabaseAdmin()
 
     // Get total servers
@@ -61,6 +67,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   } catch (error) {
     console.error('Stats API error:', error)
-    res.status(500).json({ error: 'Failed to fetch stats' })
+    
+    // Return fallback stats if database is unavailable
+    const fallbackStats: StatsResponse = {
+      totalServers: 0,
+      totalPlayers: 0,
+      totalVotes: 0,
+      onlineServers: 0
+    }
+    
+    res.status(200).json(fallbackStats)
   }
 }

@@ -173,7 +173,7 @@ export default function Register() {
         <div className="max-w-md w-full space-y-8">
           <div className="text-center">
             <Link href="/" className="inline-flex items-center space-x-2 text-emerald-400 text-2xl font-bold">
-              <img src="/assets/img/grass-block.png" className="w-8 h-8" alt="MineVote" />
+              <img src="/assets/img/grass-block.svg" className="w-8 h-8" alt="MineVote" />
               <span>MineVote</span>
             </Link>
             <h2 className="mt-6 text-3xl font-extrabold text-white">
