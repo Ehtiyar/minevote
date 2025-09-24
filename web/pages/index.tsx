@@ -85,12 +85,16 @@ export default function Home({ popular, latest, stats }: { popular: MiniServer[]
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (showProfileDropdown) {
+      const target = event.target as Element
+      if (showProfileDropdown && !target.closest('.profile-dropdown')) {
         setShowProfileDropdown(false)
       }
     }
 
-    document.addEventListener('click', handleClickOutside)
+    if (showProfileDropdown) {
+      document.addEventListener('click', handleClickOutside)
+    }
+    
     return () => document.removeEventListener('click', handleClickOutside)
   }, [showProfileDropdown])
 
@@ -184,9 +188,13 @@ export default function Home({ popular, latest, stats }: { popular: MiniServer[]
             {user ? (
               <>
                 {/* Profile Dropdown */}
-                <div className="relative">
+                <div className="relative profile-dropdown">
                   <button
-                    onClick={() => setShowProfileDropdown(!showProfileDropdown)}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      console.log('Dropdown clicked, current state:', showProfileDropdown)
+                      setShowProfileDropdown(!showProfileDropdown)
+                    }}
                     className="flex items-center space-x-2 text-gray-300 hover:text-white border border-gray-600 rounded-lg px-3 py-2 bg-gray-800/50 hover:bg-gray-700/50 transition-all duration-200"
                   >
                     <img
@@ -201,7 +209,11 @@ export default function Home({ popular, latest, stats }: { popular: MiniServer[]
                   </button>
                   
                   {showProfileDropdown && (
-                    <div className="absolute right-0 mt-2 w-48 bg-gray-800 rounded-lg shadow-lg border border-gray-700 z-50">
+                    <div 
+                      className="absolute right-0 mt-2 w-48 bg-gray-800 rounded-lg shadow-lg border border-gray-700 z-50"
+                      onClick={(e) => e.stopPropagation()}
+                      style={{ display: 'block' }}
+                    >
                       <div className="py-1">
                         <Link
                           href="/dashboard"
