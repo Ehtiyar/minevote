@@ -1,13 +1,15 @@
 [build]
-  command = "npm install --legacy-peer-deps && CI=false npm run build"
+  command = "npm run build"
   publish = ".next"
   base = "web"
 
 [build.environment]
   NODE_VERSION = "20.11.0"
+  NPM_VERSION = "10.2.4"
   NPM_FLAGS = "--legacy-peer-deps"
   NPM_CONFIG_LEGACY_PEER_DEPS = "true"
   CI = "false"
+  NODE_OPTIONS = "--max-old-space-size=4096"
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
