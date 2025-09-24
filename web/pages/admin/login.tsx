@@ -11,6 +11,7 @@ export default function AdminLogin() {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [setupMode, setSetupMode] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -40,8 +41,9 @@ export default function AdminLogin() {
       } else {
         setError(data.error || 'Login failed');
       }
-    } catch (error) {
-      setError('Network error. Please try again.');
+    } catch (error: any) {
+      console.error('Login error:', error);
+      setError(`Network error: ${error.message || 'Please try again.'}`);
     } finally {
       setIsLoading(false);
     }
@@ -52,6 +54,65 @@ export default function AdminLogin() {
       ...prev,
       [e.target.name]: e.target.value
     }));
+  };
+
+  const handleSetup = async () => {
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const response = await fetch('/api/admin/setup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: formData.username || 'admin',
+          password: formData.password || 'admin123',
+          email: 'admin@minevote.com'
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setError('');
+        alert('Admin user created successfully! You can now log in.');
+        setSetupMode(false);
+      } else {
+        setError(data.error || 'Setup failed');
+      }
+    } catch (error: any) {
+      console.error('Setup error:', error);
+      setError(`Setup error: ${error.message || 'Please try again.'}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleTestConnection = async () => {
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const response = await fetch('/api/admin/test', {
+        method: 'GET',
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setError('');
+        alert(`Database connection successful!\n\nEnvironment check:\n- Supabase URL: ${data.environment.hasSupabaseUrl ? '✓' : '✗'}\n- Service Key: ${data.environment.hasSupabaseServiceKey ? '✓' : '✗'}\n- JWT Secret: ${data.environment.hasJwtSecret ? '✓' : '✗'}`);
+      } else {
+        setError(data.error || 'Connection test failed');
+      }
+    } catch (error: any) {
+      console.error('Test error:', error);
+      setError(`Test error: ${error.message || 'Please try again.'}`);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   if (!mounted) {
@@ -81,6 +142,32 @@ export default function AdminLogin() {
             <p className="mt-2 text-center text-sm text-gray-400">
               MineVote Administration Panel
             </p>
+          </div>
+
+          {/* Setup Section */}
+          <div className="mt-6 p-4 bg-blue-900/20 border border-blue-500/30 rounded-lg">
+            <h3 className="text-sm font-medium text-blue-300 mb-2">First Time Setup</h3>
+            <p className="text-xs text-blue-200 mb-3">
+              If this is your first time accessing the admin panel, you may need to create an admin user.
+            </p>
+            <div className="space-y-2">
+              <button
+                type="button"
+                onClick={handleSetup}
+                disabled={isLoading}
+                className="w-full px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-md transition-colors disabled:opacity-50"
+              >
+                {isLoading ? 'Setting up...' : 'Create Admin User (admin/admin123)'}
+              </button>
+              <button
+                type="button"
+                onClick={handleTestConnection}
+                disabled={isLoading}
+                className="w-full px-3 py-2 bg-gray-600 hover:bg-gray-700 text-white text-sm rounded-md transition-colors disabled:opacity-50"
+              >
+                {isLoading ? 'Testing...' : 'Test Database Connection'}
+              </button>
+            </div>
           </div>
 
           <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
