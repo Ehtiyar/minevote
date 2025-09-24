@@ -5,124 +5,81 @@ import Link from 'next/link'
 import { useAuth } from '../../contexts/AuthContext'
 import { supabase } from '../../lib/supabase'
 
-interface ProfileData {
-  username: string
-  mc_nick: string
-  bio: string
-  discord_id?: string
-}
-
 export default function ProfileSettings() {
-  const { user, loading: authLoading } = useAuth()
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState('')
-  const [success, setSuccess] = useState('')
-  const router = useRouter()
-
-  const [profileData, setProfileData] = useState<ProfileData>({
+  const [formData, setFormData] = useState({
     username: '',
     mc_nick: '',
     bio: '',
     discord_id: ''
   })
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState(false)
+  const { user, profile, updateProfile } = useAuth()
+  const router = useRouter()
 
   useEffect(() => {
-    if (!authLoading && !user) {
+    if (!user) {
       router.push('/auth/login')
       return
     }
 
-    if (user) {
-      fetchProfile()
+    if (profile) {
+      setFormData({
+        username: profile.username || '',
+        mc_nick: profile.mc_nick || '',
+        bio: profile.bio || '',
+        discord_id: profile.discord_id || ''
+      })
     }
-  }, [user, authLoading, router])
-
-  const fetchProfile = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('username, mc_nick, bio, discord_id')
-        .eq('id', user?.id)
-        .single()
-
-      if (error) {
-        console.error('Profile fetch error:', error)
-        setError('Profil bilgileri yüklenemedi')
-      } else {
-        setProfileData(data)
-      }
-    } catch (error) {
-      console.error('Profile fetch error:', error)
-      setError('Profil bilgileri yüklenemedi')
-    } finally {
-      setLoading(false)
-    }
-  }
+  }, [user, profile, router])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setSaving(true)
+    setLoading(true)
     setError('')
-    setSuccess('')
 
-    try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          username: profileData.username,
-          mc_nick: profileData.mc_nick,
-          bio: profileData.bio,
-        })
-        .eq('id', user?.id)
-
-      if (error) {
-        setError(error.message)
-      } else {
-        setSuccess('Profil başarıyla güncellendi!')
-      }
-    } catch (error) {
-      setError('Profil güncellenirken bir hata oluştu')
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  const handleDeleteAccount = async () => {
-    if (!confirm('Hesabınızı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.')) {
+    if (!formData.username.trim()) {
+      setError('Kullanıcı adı gerekli')
+      setLoading(false)
       return
     }
 
-    setSaving(true)
+    if (!formData.mc_nick.trim()) {
+      setError('Minecraft nicki gerekli')
+      setLoading(false)
+      return
+    }
+
+    // Minecraft username validation
+    const mcNickRegex = /^[a-zA-Z0-9_]{3,16}$/
+    if (!mcNickRegex.test(formData.mc_nick)) {
+      setError('Minecraft nicki 3-16 karakter arası olmalı ve sadece harf, rakam, _ içermeli')
+      setLoading(false)
+      return
+    }
+
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .delete()
-        .eq('id', user?.id)
+      const { error } = await updateProfile({
+        username: formData.username,
+        mc_nick: formData.mc_nick,
+        bio: formData.bio,
+        discord_id: formData.discord_id
+      })
 
       if (error) {
         setError(error.message)
       } else {
-        // Sign out and redirect
-        await supabase.auth.signOut()
-        router.push('/')
+        setSuccess(true)
+        setTimeout(() => {
+          setSuccess(false)
+        }, 3000)
       }
-    } catch (error) {
-      setError('Hesap silinirken bir hata oluştu')
+    } catch (err) {
+      setError('Bir hata oluştu')
     } finally {
-      setSaving(false)
+      setLoading(false)
     }
-  }
-
-  if (authLoading || loading) {
-    return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500 mx-auto mb-4"></div>
-          <p className="text-white">Yükleniyor...</p>
-        </div>
-      </div>
-    )
   }
 
   if (!user) {
@@ -133,7 +90,7 @@ export default function ProfileSettings() {
     <>
       <Head>
         <title>Profil Ayarları - MineVote</title>
-        <meta name="description" content="Profil ayarlarınızı düzenleyin" />
+        <meta name="description" content="MineVote profil ayarları" />
       </Head>
 
       <div className="min-h-screen bg-gray-900">
@@ -142,7 +99,7 @@ export default function ProfileSettings() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center py-4">
               <Link href="/dashboard" className="flex items-center space-x-2 text-emerald-400 text-xl font-bold">
-                <img src="/assets/img/grass-block.png" className="w-8 h-8" alt="MineVote" />
+                <span className="w-8 h-8 flex items-center justify-center">🟩</span>
                 <span>MineVote</span>
               </Link>
               
@@ -150,18 +107,18 @@ export default function ProfileSettings() {
                 <Link href="/dashboard" className="text-gray-300 hover:text-white">
                   Dashboard
                 </Link>
-                <Link href="/" className="text-gray-300 hover:text-white">
-                  Ana Sayfa
-                </Link>
               </div>
             </div>
           </div>
         </header>
 
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="bg-gray-800 rounded-lg p-6">
-            <h1 className="text-2xl font-bold text-white mb-6">Profil Ayarları</h1>
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-white">Profil Ayarları</h1>
+            <p className="text-gray-400 mt-2">Profil bilgilerinizi düzenleyin</p>
+          </div>
 
+          <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
             {error && (
               <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-lg mb-6">
                 {error}
@@ -169,123 +126,87 @@ export default function ProfileSettings() {
             )}
 
             {success && (
-              <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-4 py-3 rounded-lg mb-6">
-                {success}
+              <div className="bg-green-500/10 border border-green-500/20 text-green-400 px-4 py-3 rounded-lg mb-6">
+                Profil başarıyla güncellendi!
               </div>
             )}
 
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Avatar Preview */}
-              <div className="flex items-center space-x-4">
-                <div className="w-20 h-20 rounded-full overflow-hidden">
-                  <img
-                    src={`https://minotar.net/avatar/${profileData.mc_nick || 'steve'}`}
-                    alt="Avatar"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <div>
-                  <p className="text-white font-medium">Profil Resmi</p>
-                  <p className="text-gray-400 text-sm">
-                    Minecraft skininiz otomatik olarak kullanılır
-                  </p>
-                </div>
-              </div>
-
-              {/* Username */}
               <div>
                 <label htmlFor="username" className="block text-sm font-medium text-gray-300 mb-2">
-                  Kullanıcı Adı
+                  Kullanıcı Adı *
                 </label>
                 <input
-                  type="text"
                   id="username"
-                  value={profileData.username}
-                  onChange={(e) => setProfileData({ ...profileData, username: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-600 rounded-lg bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  type="text"
                   required
+                  value={formData.username}
+                  onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-600 rounded-lg bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  placeholder="Kullanıcı adınızı girin"
                 />
               </div>
 
-              {/* Minecraft Nick */}
               <div>
                 <label htmlFor="mc_nick" className="block text-sm font-medium text-gray-300 mb-2">
-                  Minecraft Nicki
+                  Minecraft Nicki *
                 </label>
                 <input
-                  type="text"
                   id="mc_nick"
-                  value={profileData.mc_nick}
-                  onChange={(e) => setProfileData({ ...profileData, mc_nick: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-600 rounded-lg bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  type="text"
                   required
+                  value={formData.mc_nick}
+                  onChange={(e) => setFormData({ ...formData, mc_nick: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-600 rounded-lg bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  placeholder="Minecraft oyuncu adınızı girin"
                 />
-                <p className="text-gray-400 text-sm mt-1">
-                  Bu nick profil resminiz için kullanılır
-                </p>
+                <p className="text-xs text-gray-400 mt-1">3-16 karakter arası, sadece harf, rakam ve _</p>
               </div>
 
-              {/* Bio */}
               <div>
                 <label htmlFor="bio" className="block text-sm font-medium text-gray-300 mb-2">
-                  Biyografi
+                  Hakkımda
                 </label>
                 <textarea
                   id="bio"
-                  value={profileData.bio}
-                  onChange={(e) => setProfileData({ ...profileData, bio: e.target.value })}
                   rows={4}
+                  value={formData.bio}
+                  onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-600 rounded-lg bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                   placeholder="Kendiniz hakkında kısa bir açıklama yazın..."
                 />
               </div>
 
-              {/* Discord Info */}
-              {profileData.discord_id && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Discord Hesabı
-                  </label>
-                  <div className="px-3 py-2 border border-gray-600 rounded-lg bg-gray-700 text-gray-300">
-                    Bağlı Discord ID: {profileData.discord_id}
-                  </div>
-                  <p className="text-gray-400 text-sm mt-1">
-                    Discord hesabınız otomatik olarak bağlandı
-                  </p>
-                </div>
-              )}
+              <div>
+                <label htmlFor="discord_id" className="block text-sm font-medium text-gray-300 mb-2">
+                  Discord ID
+                </label>
+                <input
+                  id="discord_id"
+                  type="text"
+                  value={formData.discord_id}
+                  onChange={(e) => setFormData({ ...formData, discord_id: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-600 rounded-lg bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  placeholder="Discord kullanıcı adınızı girin"
+                />
+              </div>
 
-              {/* Submit Button */}
-              <div className="flex justify-end">
+              <div className="flex space-x-4">
                 <button
                   type="submit"
-                  disabled={saving}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={loading}
+                  className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-2 px-4 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {saving ? 'Kaydediliyor...' : 'Kaydet'}
+                  {loading ? 'Güncelleniyor...' : 'Güncelle'}
                 </button>
+                <Link
+                  href="/dashboard"
+                  className="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg text-center"
+                >
+                  İptal
+                </Link>
               </div>
             </form>
-
-            {/* Danger Zone */}
-            <div className="mt-12 pt-6 border-t border-gray-700">
-              <h2 className="text-lg font-semibold text-red-400 mb-4">Tehlikeli Bölge</h2>
-              
-              <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
-                <h3 className="text-red-400 font-medium mb-2">Hesabı Sil</h3>
-                <p className="text-gray-400 text-sm mb-4">
-                  Hesabınızı silmek istediğinizde tüm verileriniz kalıcı olarak silinir. 
-                  Bu işlem geri alınamaz.
-                </p>
-                <button
-                  onClick={handleDeleteAccount}
-                  disabled={saving}
-                  className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Hesabı Sil
-                </button>
-              </div>
-            </div>
           </div>
         </div>
       </div>

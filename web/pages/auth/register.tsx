@@ -3,6 +3,7 @@ import { useRouter } from 'next/router'
 import Link from 'next/link'
 import Head from 'next/head'
 import { useAuth } from '../../contexts/AuthContext'
+import { supabase } from '../../lib/supabase'
 import ReCAPTCHA from 'react-google-recaptcha'
 
 export default function Register() {
@@ -106,7 +107,13 @@ export default function Register() {
       })
 
       if (error) {
-        setError(error.message)
+        if (error.message.includes('already registered') || error.message.includes('already been registered')) {
+          setError('Bu e-posta adresi zaten kayıtlı')
+        } else if (error.message.includes('username') || error.message.includes('mc_nick')) {
+          setError('Bu kullanıcı adı veya Minecraft nicki zaten kullanılıyor')
+        } else {
+          setError(error.message)
+        }
       } else {
         setSuccess(true)
         // Redirect to login after 3 seconds
@@ -115,7 +122,8 @@ export default function Register() {
         }, 3000)
       }
     } catch (err) {
-      setError('Bir hata oluştu')
+      console.error('Registration error:', err)
+      setError('Bir hata oluştu. Lütfen tekrar deneyin.')
     } finally {
       setLoading(false)
     }

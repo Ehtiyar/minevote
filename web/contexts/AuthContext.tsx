@@ -134,9 +134,16 @@ export function AuthProvider({ children }: PropsWithChildren) {
   }
 
   const signOut = async () => {
-    const result = await auth.signOut()
-    setProfile(null)
-    return result
+    try {
+      const result = await auth.signOut()
+      setProfile(null)
+      setUser(null)
+      setSession(null)
+      return result
+    } catch (error) {
+      console.error('Sign out error:', error)
+      return { error }
+    }
   }
 
   const updateProfile = async (updates: Partial<Profile>) => {
