@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
 import Link from 'next/link'
@@ -14,8 +14,13 @@ export default function ChangePassword() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const { user } = useAuth()
   const router = useRouter()
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -43,9 +48,11 @@ export default function ChangePassword() {
         setError(error.message)
       } else {
         setSuccess(true)
-        setTimeout(() => {
-          router.push('/dashboard')
-        }, 2000)
+        if (mounted) {
+          setTimeout(() => {
+            router.push('/dashboard')
+          }, 2000)
+        }
       }
     } catch (err) {
       setError('Bir hata oluştu')
@@ -54,8 +61,14 @@ export default function ChangePassword() {
     }
   }
 
+  if (!mounted) {
+    return null
+  }
+
   if (!user) {
-    router.push('/auth/login')
+    if (mounted) {
+      router.push('/auth/login')
+    }
     return null
   }
 

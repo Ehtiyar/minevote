@@ -15,10 +15,17 @@ export default function ProfileSettings() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const { user, profile, updateProfile } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (!mounted) return
+    
     if (!user) {
       router.push('/auth/login')
       return
@@ -32,7 +39,7 @@ export default function ProfileSettings() {
         discord_id: profile.discord_id || ''
       })
     }
-  }, [user, profile, router])
+  }, [user, profile, router, mounted])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -80,6 +87,10 @@ export default function ProfileSettings() {
     } finally {
       setLoading(false)
     }
+  }
+
+  if (!mounted) {
+    return null
   }
 
   if (!user) {

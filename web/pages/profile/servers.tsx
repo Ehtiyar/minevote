@@ -22,17 +22,24 @@ interface Server {
 export default function MyServers() {
   const [servers, setServers] = useState<Server[]>([])
   const [loading, setLoading] = useState(true)
+  const [mounted, setMounted] = useState(false)
   const { user } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (!mounted) return
+    
     if (!user) {
       router.push('/auth/login')
       return
     }
 
     fetchMyServers()
-  }, [user, router])
+  }, [user, router, mounted])
 
   const fetchMyServers = async () => {
     try {
@@ -77,6 +84,10 @@ export default function MyServers() {
       console.error('Error:', err)
       alert('Bir hata oluştu')
     }
+  }
+
+  if (!mounted) {
+    return null
   }
 
   if (!user) {
