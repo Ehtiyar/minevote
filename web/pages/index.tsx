@@ -5,6 +5,7 @@ import { GetServerSideProps } from 'next'
 import { CATEGORY_OPTIONS } from '../lib/categories'
 import { useAuth } from '../contexts/AuthContext'
 import { getSupabaseAdmin } from '../lib/supabaseServer'
+import { navigationLinks, quickAccessLinks, legalLinks, socialLinks } from '../config/links'
 
 type MiniServer = {
   id: string
@@ -174,13 +175,21 @@ export default function Home({ popular, latest, stats }: { popular: MiniServer[]
               <span className="nav-toggle-bar"></span>
             </button>
             <ul id="nav-menu" className={`nav-list ${isMenuOpen ? 'open' : ''}`}>
-              <li><Link href="/" className="nav-link active">🏠 Ana Sayfa</Link></li>
-              <li><Link href="/servers" className="nav-link">🎯 Sunucular</Link></li>
-              {/* Gelecek sayfalar hazır olana kadar mevcut rotalara yönlendir */}
-              <li><Link href="/servers?sort=votes" className="nav-link">⭐ Popüler</Link></li>
-              <li><Link href="/servers" className="nav-link">📊 Sıralamalar</Link></li>
-              {user && (<li><Link href="/add" className="nav-link">➕ Sunucu Ekle</Link></li>)}
-              <li><Link href="/auth/login" className="nav-link">📞 İletişim</Link></li>
+              {navigationLinks.map((link) => (
+                <li key={link.href}>
+                  <Link 
+                    href={link.href} 
+                    className={`nav-link ${link.href === '/' ? 'active' : ''}`}
+                  >
+                    {link.icon} {link.label}
+                  </Link>
+                </li>
+              ))}
+              {user && (
+                <li>
+                  <Link href="/add" className="nav-link">➕ Sunucu Ekle</Link>
+                </li>
+              )}
             </ul>
           </nav>
 
@@ -192,7 +201,6 @@ export default function Home({ popular, latest, stats }: { popular: MiniServer[]
                   <button
                     onClick={(e) => {
                       e.stopPropagation()
-                      console.log('Dropdown clicked, current state:', showProfileDropdown)
                       setShowProfileDropdown(!showProfileDropdown)
                     }}
                     className="flex items-center space-x-2 text-gray-300 hover:text-white border border-gray-600 rounded-lg px-3 py-2 bg-gray-800/50 hover:bg-gray-700/50 transition-all duration-200"
@@ -495,18 +503,32 @@ export default function Home({ popular, latest, stats }: { popular: MiniServer[]
             <span className="footer-logo">MineVote</span>
             <p>Türkiye'nin en büyük Minecraft sunucu voting platformu</p>
             <div className="social-links">
-              <a href="#" className="social-btn">📘 Facebook</a>
-              <a href="#" className="social-btn">🐦 Twitter</a>
-              <a href="#" className="social-btn">💬 Discord</a>
+              {socialLinks.map((link) => (
+                <a 
+                  key={link.href}
+                  href={link.href} 
+                  className="social-btn"
+                  target={link.external ? "_blank" : undefined}
+                  rel={link.external ? "noopener noreferrer" : undefined}
+                >
+                  {link.icon} {link.label}
+                </a>
+              ))}
             </div>
           </div>
           <div className="footer-section">
             <h4>Hızlı Erişim</h4>
             <ul>
-              <li><a href="#">Sunucu Ekle</a></li>
-              <li><a href="#">API Dokümantasyon</a></li>
-              <li><a href="#">Yardım</a></li>
-              <li><a href="#">İletişim</a></li>
+              {quickAccessLinks.map((link) => (
+                <li key={link.href}>
+                  <Link 
+                    href={link.href}
+                    className="hover:text-emerald-400 transition-colors"
+                  >
+                    {link.icon} {link.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
           <div className="footer-section">
@@ -538,9 +560,19 @@ export default function Home({ popular, latest, stats }: { popular: MiniServer[]
         <div className="footer-bottom">
           <p>© {new Date().getFullYear()} MineVote. Tüm hakları saklıdır.</p>
           <div className="legal-links">
-            <a href="/privacy" className="hover:text-emerald-400 transition-colors">Gizlilik Politikası</a>
-            <span className="text-gray-500">·</span>
-            <a href="/terms" className="hover:text-emerald-400 transition-colors">Kullanım Şartları</a>
+            {legalLinks.map((link, index) => (
+              <span key={link.href}>
+                <Link 
+                  href={link.href}
+                  className="hover:text-emerald-400 transition-colors"
+                >
+                  {link.label}
+                </Link>
+                {index < legalLinks.length - 1 && (
+                  <span className="text-gray-500">·</span>
+                )}
+              </span>
+            ))}
           </div>
         </div>
       </footer>

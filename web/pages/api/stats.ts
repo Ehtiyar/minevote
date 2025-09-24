@@ -13,11 +13,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
+  // Always return fallback stats for now to prevent 404 errors
+  const fallbackStats: StatsResponse = {
+    totalServers: 0,
+    totalPlayers: 0,
+    totalVotes: 0,
+    onlineServers: 0
+  }
+
   try {
     // Check if environment variables are available
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_KEY) {
-      console.error('Missing Supabase environment variables')
-      return res.status(500).json({ error: 'Server configuration error' })
+      console.log('Missing Supabase environment variables, returning fallback stats')
+      res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=120')
+      return res.status(200).json(fallbackStats)
     }
 
     const supabase = getSupabaseAdmin()
@@ -27,7 +36,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .from('servers')
       .select('*', { count: 'exact', head: true })
 
-    if (serversError) throw serversError
+    if (serversError) {
+      console.log('Servers query error:', serversError)
+      res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=120')
+      return res.status(200).json(fallbackStats)
+    }
 
     // Get online servers
     const { count: onlineServers, error: onlineError } = await supabase
@@ -35,7 +48,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .select('*', { count: 'exact', head: true })
       .eq('status', 'online')
 
-    if (onlineError) throw onlineError
+    if (onlineError) {
+      console.log('Online servers query error:', onlineError)
+      res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=120')
+      return res.status(200).json(fallbackStats)
+    }
 
     // Get total players (sum of current_players)
     const { data: serversData, error: playersError } = await supabase
@@ -43,7 +60,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .select('current_players')
       .eq('status', 'online')
 
-    if (playersError) throw playersError
+    if (playersError) {
+      console.log('Players query error:', playersError)
+      res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=120')
+      return res.status(200).json(fallbackStats)
+    }
 
     const totalPlayers = serversData?.reduce((sum, server) => sum + (server.current_players || 0), 0) || 0
 
@@ -52,7 +73,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .from('votes')
       .select('*', { count: 'exact', head: true })
 
-    if (votesError) throw votesError
+    if (votesError) {
+      console.log('Votes query error:', votesError)
+      res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=120')
+      return res.status(200).json(fallbackStats)
+    }
 
     const stats: StatsResponse = {
       totalServers: totalServers || 0,
@@ -66,16 +91,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.status(200).json(stats)
 
   } catch (error) {
-    console.error('Stats API error:', error)
+    console.log('Stats API error:', error)
     
-    // Return fallback stats if database is unavailable
-    const fallbackStats: StatsResponse = {
-      totalServers: 0,
-      totalPlayers: 0,
-      totalVotes: 0,
-      onlineServers: 0
-    }
-    
+    // Always return 200 with fallback stats
+    res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=120')
     res.status(200).json(fallbackStats)
   }
 }

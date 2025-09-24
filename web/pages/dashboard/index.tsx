@@ -8,12 +8,17 @@ export default function Dashboard() {
   const { user, profile, loading: authLoading, signOut } = useAuth()
   const router = useRouter()
   const [showProfileDropdown, setShowProfileDropdown] = useState(false)
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    if (!authLoading && !user) {
+    setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (mounted && !authLoading && !user) {
       router.push('/auth/login')
     }
-  }, [user, authLoading, router])
+  }, [mounted, user, authLoading, router])
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -32,7 +37,7 @@ export default function Dashboard() {
     router.push('/')
   }
 
-  if (authLoading) {
+  if (!mounted || authLoading) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <div className="text-center">
