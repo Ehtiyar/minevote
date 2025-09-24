@@ -297,12 +297,12 @@ export default function ApiDocs() {
                               </div>
                             </div>
 
-                            {method.example.body && (
+                            {(method.example as any).body && (
                               <div className="mb-4">
                                 <h5 className="text-sm font-medium text-gray-300 mb-2">Body:</h5>
                                 <div className="bg-gray-900 rounded-lg p-4">
                                   <pre className="text-gray-300 font-mono text-sm overflow-x-auto">
-                                    {JSON.stringify(method.example.body, null, 2)}
+                                    {JSON.stringify((method.example as any).body, null, 2)}
                                   </pre>
                                 </div>
                               </div>
