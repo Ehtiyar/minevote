@@ -32,13 +32,25 @@ export default function Home({ popular, latest, stats }: { popular: MiniServer[]
     // Fetch client-side stats for real-time updates
     const fetchStats = async () => {
       try {
-        const response = await fetch('/api/stats')
+        const response = await fetch('/api/stats', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        })
+        
         if (response.ok) {
           const data = await response.json()
           setClientStats(data)
+        } else {
+          console.warn('Stats API returned:', response.status)
+          // Use server-side stats as fallback
+          setClientStats(stats)
         }
       } catch (error) {
-        console.error('Failed to fetch stats:', error)
+        console.warn('Failed to fetch stats, using server-side data:', error)
+        // Use server-side stats as fallback
+        setClientStats(stats)
       } finally {
         setStatsLoading(false)
       }

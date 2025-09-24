@@ -25,7 +25,7 @@ export default function Register() {
 
   useEffect(() => {
     if (user) {
-      router.push('/dashboard')
+      router.push('/')
     }
   }, [user, router])
 
@@ -116,9 +116,9 @@ export default function Register() {
         }
       } else {
         setSuccess(true)
-        // Redirect to login after 3 seconds
+        // Redirect to home after 3 seconds
         setTimeout(() => {
-          router.push('/auth/login?message=check_email')
+          router.push('/?message=check_email')
         }, 3000)
       }
     } catch (err) {
@@ -155,7 +155,7 @@ export default function Register() {
             E-posta adresinize gönderilen doğrulama linkini kontrol edin.
           </p>
           <p className="text-sm text-gray-500">
-            3 saniye sonra giriş sayfasına yönlendirileceksiniz...
+            3 saniye sonra ana sayfaya yönlendirileceksiniz...
           </p>
         </div>
       </div>
