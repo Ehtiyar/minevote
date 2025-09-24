@@ -26,6 +26,7 @@ export default function Home({ popular, latest, stats }: { popular: MiniServer[]
   const [isDarkMode, setIsDarkMode] = useState(true)
   const [clientStats, setClientStats] = useState<Stats | null>(null)
   const [statsLoading, setStatsLoading] = useState(true)
+  const [showProfileDropdown, setShowProfileDropdown] = useState(false)
   const { user, signOut } = useAuth()
 
   useEffect(() => {
@@ -80,6 +81,18 @@ export default function Home({ popular, latest, stats }: { popular: MiniServer[]
 
     setTimeout(animateCounters, 500)
   }, [])
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (showProfileDropdown) {
+        setShowProfileDropdown(false)
+      }
+    }
+
+    document.addEventListener('click', handleClickOutside)
+    return () => document.removeEventListener('click', handleClickOutside)
+  }, [showProfileDropdown])
 
   return (
     <>
@@ -170,13 +183,75 @@ export default function Home({ popular, latest, stats }: { popular: MiniServer[]
           <div className="user-actions">
             {user ? (
               <>
-                <Link href="/dashboard" className="btn btn-ghost">Dashboard</Link>
-                <button 
-                  onClick={() => signOut()} 
-                  className="btn btn-primary"
-                >
-                  Çıkış Yap
-                </button>
+                {/* Profile Dropdown */}
+                <div className="relative">
+                  <button
+                    onClick={() => setShowProfileDropdown(!showProfileDropdown)}
+                    className="flex items-center space-x-2 text-gray-300 hover:text-white border border-gray-600 rounded-lg px-3 py-2 bg-gray-800/50 hover:bg-gray-700/50 transition-all duration-200"
+                  >
+                    <img
+                      src={`https://minotar.net/avatar/${user.user_metadata?.mc_nick || 'steve'}/32`}
+                      alt="Avatar"
+                      className="w-8 h-8 rounded-full border-2 border-emerald-500"
+                    />
+                    <span className="text-sm font-medium">{user.user_metadata?.username || 'Kullanıcı'}</span>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  
+                  {showProfileDropdown && (
+                    <div className="absolute right-0 mt-2 w-48 bg-gray-800 rounded-lg shadow-lg border border-gray-700 z-50">
+                      <div className="py-1">
+                        <Link
+                          href="/dashboard"
+                          className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white"
+                          onClick={() => setShowProfileDropdown(false)}
+                        >
+                          🏠 Dashboard
+                        </Link>
+                        <Link
+                          href="/profile/settings"
+                          className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white"
+                          onClick={() => setShowProfileDropdown(false)}
+                        >
+                          🔧 Profil Ayarları
+                        </Link>
+                        <Link
+                          href="/profile/change-password"
+                          className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white"
+                          onClick={() => setShowProfileDropdown(false)}
+                        >
+                          🔒 Şifre Değiştir
+                        </Link>
+                        <Link
+                          href="/profile/servers"
+                          className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white"
+                          onClick={() => setShowProfileDropdown(false)}
+                        >
+                          🖥️ Sunucularım
+                        </Link>
+                        <Link
+                          href="/add"
+                          className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white"
+                          onClick={() => setShowProfileDropdown(false)}
+                        >
+                          ➕ Sunucu Ekle
+                        </Link>
+                        <hr className="my-1 border-gray-700" />
+                        <button
+                          onClick={() => {
+                            signOut()
+                            setShowProfileDropdown(false)
+                          }}
+                          className="block w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-gray-700 hover:text-red-300"
+                        >
+                          🚪 Çıkış Yap
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </>
             ) : (
               <>
