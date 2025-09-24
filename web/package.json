@@ -27,7 +27,8 @@
   "optionalDependencies": {
     "sqlite3": "*",
     "minecraft-server-util": "^5.4.0",
-    "canvas": "^2.11.2"
+    "canvas": "^2.11.2",
+    "discord.js": "^14.14.1"
   },
   "devDependencies": {
     "@types/node": "^20.14.9",
