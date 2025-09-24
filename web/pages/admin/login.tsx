@@ -95,6 +95,19 @@ export default function AdminLogin() {
     setError('');
 
     try {
+      // First test basic API
+      const basicResponse = await fetch('/api/test', {
+        method: 'GET',
+      });
+
+      if (!basicResponse.ok) {
+        throw new Error(`Basic API test failed: ${basicResponse.status}`);
+      }
+
+      const basicData = await basicResponse.json();
+      console.log('Basic API test:', basicData);
+
+      // Then test admin API
       const response = await fetch('/api/admin/test', {
         method: 'GET',
       });
@@ -166,6 +179,22 @@ export default function AdminLogin() {
                 className="w-full px-3 py-2 bg-gray-600 hover:bg-gray-700 text-white text-sm rounded-md transition-colors disabled:opacity-50"
               >
                 {isLoading ? 'Testing...' : 'Test Database Connection'}
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  try {
+                    const response = await fetch('/api/test');
+                    const data = await response.json();
+                    alert(`Basic API Test: ${data.message}`);
+                  } catch (error) {
+                    alert(`Basic API Test Failed: ${error}`);
+                  }
+                }}
+                disabled={isLoading}
+                className="w-full px-3 py-2 bg-green-600 hover:bg-green-700 text-white text-sm rounded-md transition-colors disabled:opacity-50"
+              >
+                Test Basic API
               </button>
             </div>
           </div>
