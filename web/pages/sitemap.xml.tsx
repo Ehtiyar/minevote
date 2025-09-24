@@ -32,10 +32,11 @@ function generateSiteMap(servers: Array<{id: string, updated_at?: string, create
      </url>
      ${servers
        .map((server) => {
+         const lastMod = server.updated_at || server.created_at || new Date().toISOString()
          return `
        <url>
            <loc>${baseUrl}/servers/${server.id}</loc>
-           <lastmod>${new Date(server.updated_at || server.created_at).toISOString()}</lastmod>
+           <lastmod>${new Date(lastMod).toISOString()}</lastmod>
            <changefreq>weekly</changefreq>
            <priority>0.8</priority>
        </url>
