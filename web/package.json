@@ -26,7 +26,8 @@
   },
   "optionalDependencies": {
     "sqlite3": "*",
-    "minecraft-server-util": "^5.4.0"
+    "minecraft-server-util": "^5.4.0",
+    "canvas": "^2.11.2"
   },
   "devDependencies": {
     "@types/node": "^20.14.9",

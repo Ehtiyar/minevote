@@ -1,10 +1,20 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true,
+  experimental: {
+    serverComponentsExternalPackages: ['bcrypt', 'canvas', 'sqlite3', 'minecraft-server-util']
+  },
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      config.externals.push('bcrypt', 'canvas', 'sqlite3', 'minecraft-server-util');
+    }
+    return config;
+  },
   images: {
-    remotePatterns: [
-      { protocol: 'https', hostname: '**' }
-    ]
+    domains: ['minotar.net', 'via.placeholder.com'],
+    unoptimized: true
+  },
+  env: {
+    CUSTOM_KEY: process.env.CUSTOM_KEY,
   }
 }
 
