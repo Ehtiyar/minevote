@@ -1,11 +1,14 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
-    serverComponentsExternalPackages: ['bcrypt', 'canvas', 'sqlite3', 'minecraft-server-util', 'discord.js']
+    serverComponentsExternalPackages: ['bcrypt', 'canvas', 'sqlite3', 'minecraft-server-util', 'discord.js', 'styled-components']
+  },
+  compiler: {
+    styledComponents: true
   },
   webpack: (config, { isServer }) => {
     if (isServer) {
-      config.externals.push('bcrypt', 'canvas', 'sqlite3', 'minecraft-server-util', 'discord.js');
+      config.externals.push('bcrypt', 'canvas', 'sqlite3', 'minecraft-server-util', 'discord.js', 'styled-components');
     }
     // Handle optional dependencies gracefully
     config.resolve.fallback = {
@@ -13,7 +16,8 @@ const nextConfig = {
       'discord.js': false,
       'canvas': false,
       'sqlite3': false,
-      'minecraft-server-util': false
+      'minecraft-server-util': false,
+      'styled-components': false
     };
     return config;
   },
